@@ -9,7 +9,7 @@ export const SUPER_COMBOS = [
     name: '02 Pizzas PP + 1 Refrigerante 1 Litro',
     description: 'ESCOLHA OS SABORES',
     price: 32.90,
-    image: '/images/pizzafoto.webp',
+    image: '/images/supercombo.png',
     category: 'super-combos'
   },
   {
@@ -17,7 +17,7 @@ export const SUPER_COMBOS = [
     name: '02 Pizzas P + 1 Refrigerante 1 Litro',
     description: 'ESCOLHA OS SABORES',
     price: 49.90,
-    image: '/images/pizzafoto.webp',
+    image: '/images/supercombo-p.png',
     category: 'super-combos'
   },
   {

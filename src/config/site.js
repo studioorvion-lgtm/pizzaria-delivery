@@ -4,7 +4,7 @@
  */
 
 export const siteConfig = {
-  name: 'Pizzaria Sapore Di Pizza',
+  name: 'Donatello Pizzaria Artesanal',
   tagline: 'A verdadeira pizza na sua casa.',
   deliveryTime: 'até 30 min',
   
