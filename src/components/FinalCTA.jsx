@@ -9,7 +9,6 @@ export default function FinalCTA() {
     if (totalItems > 0) {
       setIsCartOpen(true);
     } else {
-      // Faz scroll suave para a seção de Super Combos
       const el = document.getElementById('super-combos');
       if (el) {
         el.scrollIntoView({ behavior: 'smooth' });
@@ -30,9 +29,10 @@ export default function FinalCTA() {
         <span>PEDIR AGORA</span>
       </button>
 
+      {/* Item 5: Sem nome SigiloPay, apenas Pagamento seguro via Pix */}
       <p className="text-xs text-gray-500 font-medium mt-3 flex items-center justify-center gap-1.5">
         <span>🔒</span>
-        <span>Pagamento seguro via <strong>PIX SigiloPay</strong> ou Cartão na Entrega</span>
+        <span>Pagamento seguro via <strong>Pix</strong> • Confirmação Instantânea</span>
       </p>
     </section>
   );

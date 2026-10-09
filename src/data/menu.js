@@ -1,6 +1,6 @@
 /**
  * Dados de cardápio completos para a Donatello Pizzaria Artesanal
- * Estrutura 100% fiel à hierarquia das referências
+ * Imagens 100% coerentes com os produtos vendidos
  */
 
 export const SUPER_COMBOS = [
@@ -11,7 +11,7 @@ export const SUPER_COMBOS = [
     oldPrice: 44.90,
     price: 32.90,
     badge: '2X1',
-    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-2pizzas-1refri.jpg',
     category: 'super-combos'
   },
   {
@@ -21,7 +21,7 @@ export const SUPER_COMBOS = [
     oldPrice: 59.90,
     price: 49.90,
     badge: '2X1',
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-2pizzas-1refri.jpg',
     category: 'super-combos'
   },
   {
@@ -31,7 +31,7 @@ export const SUPER_COMBOS = [
     oldPrice: 69.90,
     price: 55.90,
     badge: '2X1',
-    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-2pizzas-2l.jpg',
     category: 'super-combos'
   },
   {
@@ -41,7 +41,7 @@ export const SUPER_COMBOS = [
     oldPrice: 79.90,
     price: 64.90,
     badge: '2X1',
-    image: 'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-2pizzas-2l.jpg',
     category: 'super-combos'
   },
   {
@@ -51,7 +51,7 @@ export const SUPER_COMBOS = [
     oldPrice: 94.90,
     price: 73.80,
     badge: '2X1',
-    image: 'https://images.unsplash.com/photo-1544982503-9f984c14501a?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-2pizzas-2refris.jpg',
     category: 'super-combos'
   },
   {
@@ -61,7 +61,7 @@ export const SUPER_COMBOS = [
     oldPrice: 129.90,
     price: 99.80,
     badge: 'TRIPLO ESPECIAL',
-    image: 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-3pizzas-2refris.jpg',
     category: 'super-combos'
   }
 ];
@@ -72,7 +72,7 @@ export const COMBOS_ESPECIAIS = [
     name: '01 Pizza Média Calabresa + 01 Refri 1L',
     description: 'Massa crocante, molho de tomate rústico, queijo mussarela especial, calabresa fatiada e cebola.',
     price: 49.90,
-    image: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-1pizza-1refri.jpg',
     category: 'combos-especiais'
   },
   {
@@ -80,7 +80,7 @@ export const COMBOS_ESPECIAIS = [
     name: '01 Pizza Média Carne de Sol + 01 Refri 1L',
     description: 'Carne de sol desfiada temperada na manteiga de garrafa, queijo coalho e catupiry original.',
     price: 49.90,
-    image: 'https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-1pizza-1refri.jpg',
     category: 'combos-especiais'
   },
   {
@@ -88,7 +88,7 @@ export const COMBOS_ESPECIAIS = [
     name: '01 Pizza Média Marguerita + 01 Refri 1L',
     description: 'Mussarela de búfala, rodelas de tomate fresco, folhas de manjericão fresco e azeite extravirgem.',
     price: 49.90,
-    image: 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-1pizza-1refri.jpg',
     category: 'combos-especiais'
   },
   {
@@ -96,7 +96,7 @@ export const COMBOS_ESPECIAIS = [
     name: '01 Pizza Média Frango Catupiry + 01 Refri 1L',
     description: 'Peito de frango selecionado desfiado, temperado e coberto com legítimo Catupiry cremoso.',
     price: 49.90,
-    image: 'https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-1pizza-1refri.jpg',
     category: 'combos-especiais'
   },
   {
@@ -104,7 +104,7 @@ export const COMBOS_ESPECIAIS = [
     name: '01 Pizza Média Portuguesa + 01 Refri 1L',
     description: 'Presunto magro, ovos cozidos picados, cebola, azeitonas pretas, ervilha fresca e mussarela.',
     price: 49.90,
-    image: 'https://images.unsplash.com/photo-1576458088443-04a19bb13da6?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-1pizza-1refri.jpg',
     category: 'combos-especiais'
   },
   {
@@ -112,7 +112,7 @@ export const COMBOS_ESPECIAIS = [
     name: '01 Pizza Média Três Queijos + 01 Refri 1L',
     description: 'Harmonização perfeita de queijo mussarela, provolone defumado e catupiry original.',
     price: 49.90,
-    image: 'https://images.unsplash.com/photo-1528137871618-79d2761e3fd5?w=500&auto=format&fit=crop&q=80',
+    image: '/images/combo-1pizza-1refri.jpg',
     category: 'combos-especiais'
   }
 ];
@@ -123,7 +123,7 @@ export const HAMBURGUERES = [
     name: 'Classic Burger',
     description: 'Pão brioche artesanal tostado na manteiga, burger bovino 150g, queijo cheddar derretido e maionese verde.',
     price: 22.00,
-    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=80',
+    image: '/images/burger-artesanal.jpg',
     category: 'burgers'
   },
   {
@@ -131,7 +131,7 @@ export const HAMBURGUERES = [
     name: 'Cheddar Bacon',
     description: 'Pão brioche, burger artesanal 150g, generosa camada de cheddar cremoso e fatias de bacon crocante.',
     price: 29.90,
-    image: 'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&auto=format&fit=crop&q=80',
+    image: '/images/burger-artesanal.jpg',
     category: 'burgers'
   },
   {
@@ -139,7 +139,7 @@ export const HAMBURGUERES = [
     name: 'Double Smash',
     description: 'Pão brioche, dois smash burgers prensados na chapa de 90g cada, queijo prato duplo e cebola caramelizada.',
     price: 32.90,
-    image: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=500&auto=format&fit=crop&q=80',
+    image: '/images/burger-artesanal.jpg',
     category: 'burgers'
   },
   {
@@ -147,7 +147,7 @@ export const HAMBURGUERES = [
     name: 'Barbecue Supreme',
     description: 'Pão brioche, burger 160g, cheddar duplo, bacon em tiras, anéis de cebola empanada e molho barbecue rústico.',
     price: 34.90,
-    image: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&auto=format&fit=crop&q=80',
+    image: '/images/burger-monster.jpg',
     category: 'burgers'
   },
   {
@@ -155,7 +155,7 @@ export const HAMBURGUERES = [
     name: 'Monster Burguer',
     description: 'Pão brioche gigante, 3 smashs bovinos, triplo queijo, bacon em dobro e maionese defumada.',
     price: 39.90,
-    image: 'https://images.unsplash.com/photo-1582196016295-f8c8bd4b3e99?w=500&auto=format&fit=crop&q=80',
+    image: '/images/burger-monster.jpg',
     category: 'burgers'
   }
 ];
@@ -214,7 +214,7 @@ export const BEBIDAS = [
     id: 'agua-500',
     name: 'Água Mineral 500ml',
     price: 4.50,
-    image: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=300&auto=format&fit=crop&q=80',
+    image: '/images/agua-mineral.jpg',
     category: 'bebidas'
   }
 ];
@@ -242,7 +242,7 @@ export const CLIENT_REVIEWS = [
     pizzaName: 'Combo Família 2 Pizzas G',
     price: 64.90,
     badge: 'O MAIS PEDIDO',
-    image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&auto=format&fit=crop&q=80'
+    image: '/images/combo-2pizzas-2l.jpg'
   },
   {
     id: 'rev-3',
@@ -278,7 +278,7 @@ export const CLIENT_REVIEWS = [
     pizzaName: 'Combo 02 Pizzas M + Refri 2L',
     price: 55.90,
     badge: '2X1',
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&auto=format&fit=crop&q=80'
+    image: '/images/combo-2pizzas-2l.jpg'
   },
   {
     id: 'rev-6',
@@ -302,7 +302,7 @@ export const CLIENT_REVIEWS = [
     pizzaName: 'Combo 03 Pizzas Gigantes',
     price: 99.80,
     badge: 'TRIPLO ESPECIAL',
-    image: 'https://images.unsplash.com/photo-1604382355076-af4b0eb60143?w=500&auto=format&fit=crop&q=80'
+    image: '/images/combo-3pizzas-2refris.jpg'
   },
   {
     id: 'rev-8',
@@ -326,7 +326,7 @@ export const CLIENT_REVIEWS = [
     pizzaName: 'Combo 02 Pizzas PP + Refri',
     price: 32.90,
     badge: '2X1',
-    image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&auto=format&fit=crop&q=80'
+    image: '/images/combo-2pizzas-1refri.jpg'
   }
 ];
 

@@ -14,8 +14,26 @@ export function CartProvider({ children }) {
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [activeOrder, setActiveOrder] = useState(null);
-  const [paidOrder, setPaidOrder] = useState(null);
+
+  // Pedidos persistidos localmente
+  const [activeOrder, setActiveOrderState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('donatello_active_order');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [paidOrder, setPaidOrderState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('donatello_paid_order');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
   const [toastMessage, setToastMessage] = useState(null);
 
   useEffect(() => {
@@ -23,6 +41,29 @@ export function CartProvider({ children }) {
       localStorage.setItem('donatello_cart', JSON.stringify(items));
     } catch {}
   }, [items]);
+
+  const setActiveOrder = (order) => {
+    setActiveOrderState(order);
+    try {
+      if (order) {
+        localStorage.setItem('donatello_active_order', JSON.stringify(order));
+      } else {
+        localStorage.removeItem('donatello_active_order');
+      }
+    } catch {}
+  };
+
+  const setPaidOrder = (order) => {
+    setPaidOrderState(order);
+    try {
+      if (order) {
+        localStorage.setItem('donatello_paid_order', JSON.stringify(order));
+        localStorage.removeItem('donatello_active_order');
+      } else {
+        localStorage.removeItem('donatello_paid_order');
+      }
+    } catch {}
+  };
 
   const showToast = (msg) => {
     setToastMessage(msg);

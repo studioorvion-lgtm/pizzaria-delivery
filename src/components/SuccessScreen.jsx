@@ -2,6 +2,7 @@ import React from 'react';
 import { CheckCircle2, MessageSquare, Home, Sparkles, Flame, Clock } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/validators';
+import { siteConfig } from '../config/site';
 
 export default function SuccessScreen() {
   const { paidOrder, setPaidOrder } = useCart();
@@ -9,12 +10,13 @@ export default function SuccessScreen() {
   if (!paidOrder) return null;
 
   const openWhatsApp = () => {
-    const msg = `Olá! Meu pedido #${paidOrder.orderId} no valor de ${formatCurrency(
+    const msg = `Olá, ${siteConfig.name}! Meu pedido #${paidOrder.orderId} no valor de ${formatCurrency(
       paidOrder.paidAmount || paidOrder.total
-    )} foi PAGO via Pix! Aguardo a entrega em ${paidOrder.address?.street}, nº ${
-      paidOrder.address?.number
-    }.`;
-    window.open(`https://wa.me/5511998765432?text=${encodeURIComponent(msg)}`, '_blank');
+    )} foi PAGO via Pix! Aguardo a entrega.`;
+    const link = siteConfig.getWhatsAppLink(msg);
+    if (link) {
+      window.open(link, '_blank');
+    }
   };
 
   return (
@@ -28,7 +30,7 @@ export default function SuccessScreen() {
 
           <span className="inline-flex items-center gap-1 bg-white/25 text-white text-[11px] font-black uppercase px-3 py-1 rounded-full mb-2">
             <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-            PAGAMENTO CONFIRMADO NO SIGILOPAY
+            PAGAMENTO CONFIRMADO VIA PIX
           </span>
 
           <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white">
@@ -61,7 +63,7 @@ export default function SuccessScreen() {
               <span className="text-gray-500 font-medium">Previsão de Entrega:</span>
               <span className="font-bold text-gray-900 flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5 text-[#D32F2F]" />
-                25 a 35 minutos
+                {siteConfig.deliveryTime}
               </span>
             </div>
 
@@ -82,19 +84,21 @@ export default function SuccessScreen() {
             </div>
             <div className="text-xs">
               <div className="font-bold text-amber-900">Sua pizza já foi para o forno!</div>
-              <div className="text-amber-700">Nosso entregador sairá em instantes com a bolsa térmica.</div>
+              <div className="text-amber-700">Nosso entregador sairá em instantes com a embalagem térmica.</div>
             </div>
           </div>
 
           {/* Botões */}
           <div className="space-y-2 pt-2">
-            <button
-              onClick={openWhatsApp}
-              className="w-full bg-[#25D366] hover:bg-[#1ebd5a] active:bg-[#1a9a4b] text-white py-3 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>Acompanhar pelo WhatsApp</span>
-            </button>
+            {siteConfig.phone && (
+              <button
+                onClick={openWhatsApp}
+                className="w-full bg-[#25D366] hover:bg-[#1ebd5a] active:bg-[#1a9a4b] text-white py-3 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>Acompanhar pelo WhatsApp</span>
+              </button>
+            )}
 
             <button
               onClick={() => setPaidOrder(null)}

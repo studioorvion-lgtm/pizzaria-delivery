@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck, QrCode, CreditCard, Banknote, Loader2, AlertCircle } from 'lucide-react';
+import { X, ShieldCheck, QrCode, Loader2, AlertCircle } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { isValidCPF, formatCPF, formatPhone, formatCEP, formatCurrency } from '../utils/validators';
+import { formatPhone, formatCEP, formatCurrency } from '../utils/validators';
 
 const BRAZILIAN_STATES = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 
@@ -22,16 +22,13 @@ export default function CheckoutModal() {
     fullName: '',
     phone: '',
     cpf: '',
-    email: '',
-    cep: '01310-100',
-    street: 'Avenida Paulista',
-    number: '1000',
-    complement: 'Apto 42',
-    neighborhood: 'Bela Vista',
-    city: 'São Paulo',
+    cep: '',
+    street: '',
+    number: '',
+    complement: '',
+    neighborhood: '',
+    city: '',
     state: 'SP',
-    paymentMethod: 'pix',
-    trocoPara: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -44,7 +41,6 @@ export default function CheckoutModal() {
     const { name, value } = e.target;
     let formatted = value;
 
-    if (name === 'cpf') formatted = formatCPF(value);
     if (name === 'phone') formatted = formatPhone(value);
     if (name === 'cep') formatted = formatCEP(value);
 
@@ -87,15 +83,10 @@ export default function CheckoutModal() {
 
     const cleanPhone = formData.phone.replace(/\D/g, '');
     if (cleanPhone.length < 10) {
-      newErrors.phone = 'Telefone com DDD inválido';
+      newErrors.phone = 'Telefone/WhatsApp com DDD é obrigatório';
     }
 
-    if (formData.paymentMethod === 'pix') {
-      if (!formData.cpf || !isValidCPF(formData.cpf)) {
-        newErrors.cpf = 'CPF válido obrigatório para gerar o PIX SigiloPay';
-      }
-    }
-
+    // Item 7: CPF é estritamente OPCIONAL no checkout inicial
     if (!formData.street.trim()) newErrors.street = 'Endereço obrigatório';
     if (!formData.number.trim()) newErrors.number = 'Número obrigatório';
     if (!formData.neighborhood.trim()) newErrors.neighborhood = 'Bairro obrigatório';
@@ -117,22 +108,21 @@ export default function CheckoutModal() {
       const payload = {
         items,
         customer: {
-          fullName: formData.fullName,
-          phone: formData.phone,
-          cpf: formData.cpf,
-          email: formData.email || 'pedido@donatellopizza.com.br',
+          fullName: formData.fullName.trim(),
+          phone: formData.phone.replace(/\D/g, ''),
+          cpf: formData.cpf ? formData.cpf.replace(/\D/g, '') : '',
+          email: 'pedido@donatellopizza.com.br',
         },
         address: {
           cep: formData.cep,
-          street: formData.street,
-          number: formData.number,
-          complement: formData.complement,
-          neighborhood: formData.neighborhood,
-          city: formData.city,
+          street: formData.street.trim(),
+          number: formData.number.trim(),
+          complement: formData.complement.trim(),
+          neighborhood: formData.neighborhood.trim(),
+          city: formData.city.trim(),
           state: formData.state,
         },
-        paymentMethod: formData.paymentMethod,
-        trocoPara: formData.trocoPara,
+        paymentMethod: 'pix', // Item 6: Somente PIX
         idempotencyKey: `${formData.phone}_${Date.now().toString().slice(0, 8)}`,
       };
 
@@ -142,13 +132,13 @@ export default function CheckoutModal() {
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Erro ao processar pedido.');
+        throw new Error(data.error || 'Erro ao processar pedido no gateway de pagamento.');
       }
 
-      // Sucesso: fecha checkout e abre tela de pagamento / pedido
+      // Sucesso
       setIsCheckoutOpen(false);
       clearCart();
       setActiveOrder({
@@ -158,7 +148,7 @@ export default function CheckoutModal() {
         items,
       });
     } catch (err) {
-      setSubmitError(err.message || 'Falha de comunicação.');
+      setSubmitError(err.message || 'Falha de comunicação ao gerar o Pix. Tente novamente.');
     } finally {
       setIsSubmitting(false);
     }
@@ -173,7 +163,7 @@ export default function CheckoutModal() {
             <h3 className="font-extrabold text-gray-900 text-lg">Finalizar Pedido</h3>
             <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold mt-0.5">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Ambiente 100% Seguro • PIX Oficial SigiloPay</span>
+              <span>Ambiente 100% Seguro • Pagamento Instantâneo</span>
             </div>
           </div>
 
@@ -190,7 +180,10 @@ export default function CheckoutModal() {
           {submitError && (
             <div className="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{submitError}</span>
+              <div className="flex-1">
+                <p className="font-bold">Aviso:</p>
+                <p>{submitError}</p>
+              </div>
             </div>
           )}
 
@@ -198,7 +191,7 @@ export default function CheckoutModal() {
           <div className="space-y-3">
             <h4 className="text-xs font-black uppercase text-gray-700 tracking-wider flex items-center gap-1.5">
               <span className="w-4 h-4 rounded-full bg-[#D32F2F] text-white text-[10px] flex items-center justify-center font-bold">1</span>
-              Dados Pessoais
+              Dados de Contato
             </h4>
 
             <div>
@@ -224,7 +217,7 @@ export default function CheckoutModal() {
                   name="phone"
                   value={formData.phone}
                   onChange={handleInputChange}
-                  placeholder="(11) 99999-9999"
+                  placeholder="(00) 00000-0000"
                   className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none ${
                     errors.phone ? 'border-red-500 bg-red-50/30' : 'border-gray-200'
                   }`}
@@ -234,19 +227,16 @@ export default function CheckoutModal() {
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1">
-                  CPF {formData.paymentMethod === 'pix' ? '*' : '(Opcional)'}
+                  CPF <span className="text-gray-400 font-normal">(Opcional)</span>
                 </label>
                 <input
                   type="text"
                   name="cpf"
                   value={formData.cpf}
                   onChange={handleInputChange}
-                  placeholder="000.000.000-00"
-                  className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none ${
-                    errors.cpf ? 'border-red-500 bg-red-50/30' : 'border-gray-200'
-                  }`}
+                  placeholder="000.000.000-00 (Opcional)"
+                  className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
                 />
-                {errors.cpf && <p className="text-red-500 text-[11px] mt-0.5">{errors.cpf}</p>}
               </div>
             </div>
           </div>
@@ -279,11 +269,12 @@ export default function CheckoutModal() {
                   name="street"
                   value={formData.street}
                   onChange={handleInputChange}
-                  placeholder="Nome da sua rua"
+                  placeholder="Nome da sua rua / avenida"
                   className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none ${
                     errors.street ? 'border-red-500' : 'border-gray-200'
                   }`}
                 />
+                {errors.street && <p className="text-red-500 text-[11px] mt-0.5">{errors.street}</p>}
               </div>
             </div>
 
@@ -296,8 +287,11 @@ export default function CheckoutModal() {
                   value={formData.number}
                   onChange={handleInputChange}
                   placeholder="123"
-                  className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                  className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none ${
+                    errors.number ? 'border-red-500' : 'border-gray-200'
+                  }`}
                 />
+                {errors.number && <p className="text-red-500 text-[11px] mt-0.5">{errors.number}</p>}
               </div>
 
               <div>
@@ -307,7 +301,7 @@ export default function CheckoutModal() {
                   name="complement"
                   value={formData.complement}
                   onChange={handleInputChange}
-                  placeholder="Apto, Bloco"
+                  placeholder="Apto, Bloco (opcional)"
                   className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
                 />
               </div>
@@ -319,9 +313,12 @@ export default function CheckoutModal() {
                   name="neighborhood"
                   value={formData.neighborhood}
                   onChange={handleInputChange}
-                  placeholder="Bairro"
-                  className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                  placeholder="Seu bairro"
+                  className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none ${
+                    errors.neighborhood ? 'border-red-500' : 'border-gray-200'
+                  }`}
                 />
+                {errors.neighborhood && <p className="text-red-500 text-[11px] mt-0.5">{errors.neighborhood}</p>}
               </div>
             </div>
 
@@ -333,12 +330,16 @@ export default function CheckoutModal() {
                   name="city"
                   value={formData.city}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 text-xs sm:text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none"
+                  placeholder="Sua cidade"
+                  className={`w-full px-3 py-2 text-xs sm:text-sm border rounded-lg focus:ring-2 focus:ring-red-500 focus:outline-none ${
+                    errors.city ? 'border-red-500' : 'border-gray-200'
+                  }`}
                 />
+                {errors.city && <p className="text-red-500 text-[11px] mt-0.5">{errors.city}</p>}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">UF *</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Estado *</label>
                 <select
                   name="state"
                   value={formData.state}
@@ -353,93 +354,31 @@ export default function CheckoutModal() {
             </div>
           </div>
 
-          {/* 3. Forma de Pagamento */}
+          {/* 3. Forma de Pagamento - SOMENTE PIX */}
           <div className="space-y-3 pt-2 border-t border-gray-100">
             <h4 className="text-xs font-black uppercase text-gray-700 tracking-wider flex items-center gap-1.5">
               <span className="w-4 h-4 rounded-full bg-[#D32F2F] text-white text-[10px] flex items-center justify-center font-bold">3</span>
               Forma de Pagamento
             </h4>
 
-            <div className="space-y-2">
-              {/* Opção Pix */}
-              <label
-                className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition ${
-                  formData.paymentMethod === 'pix'
-                    ? 'border-[#D32F2F] bg-red-50/40 ring-1 ring-[#D32F2F]'
-                    : 'border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="pix"
-                    checked={formData.paymentMethod === 'pix'}
-                    onChange={handleInputChange}
-                    className="text-[#D32F2F] focus:ring-[#D32F2F]"
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs sm:text-sm font-bold text-gray-900">PIX (SigiloPay)</span>
-                      <span className="text-[10px] font-black bg-emerald-600 text-white px-1.5 py-0.5 rounded">
-                        APROVAÇÃO INSTANTÂNEA
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-gray-500">QR Code e código Copia e Cola gerados na hora</p>
-                  </div>
+            {/* Opção Pix Única e Exclusiva */}
+            <div className="p-3.5 rounded-xl border border-[#D32F2F] bg-red-50/40 ring-1 ring-[#D32F2F] flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#D32F2F] text-white flex items-center justify-center shrink-0">
+                  <QrCode className="w-4 h-4" />
                 </div>
-                <QrCode className="w-5 h-5 text-[#D32F2F] shrink-0" />
-              </label>
-
-              {/* Opção Cartão na Entrega */}
-              <label
-                className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition ${
-                  formData.paymentMethod === 'card'
-                    ? 'border-[#D32F2F] bg-red-50/40 ring-1 ring-[#D32F2F]'
-                    : 'border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="card"
-                    checked={formData.paymentMethod === 'card'}
-                    onChange={handleInputChange}
-                    className="text-[#D32F2F] focus:ring-[#D32F2F]"
-                  />
-                  <div>
-                    <span className="text-xs sm:text-sm font-bold text-gray-900">Cartão na Entrega</span>
-                    <p className="text-[11px] text-gray-500">Máquina levada pelo entregador (Crédito ou Débito)</p>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs sm:text-sm font-extrabold text-gray-900">Pix</span>
+                    <span className="text-[10px] font-black bg-emerald-600 text-white px-1.5 py-0.5 rounded">
+                      APROVAÇÃO INSTANTÂNEA
+                    </span>
                   </div>
+                  <p className="text-[11px] text-gray-500 mt-0.5">
+                    QR Code e código Copia e Cola gerados na hora
+                  </p>
                 </div>
-                <CreditCard className="w-5 h-5 text-gray-600 shrink-0" />
-              </label>
-
-              {/* Opção Dinheiro */}
-              <label
-                className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition ${
-                  formData.paymentMethod === 'cash'
-                    ? 'border-[#D32F2F] bg-red-50/40 ring-1 ring-[#D32F2F]'
-                    : 'border-gray-200 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="cash"
-                    checked={formData.paymentMethod === 'cash'}
-                    onChange={handleInputChange}
-                    className="text-[#D32F2F] focus:ring-[#D32F2F]"
-                  />
-                  <div>
-                    <span className="text-xs sm:text-sm font-bold text-gray-900">Dinheiro na Entrega</span>
-                    <p className="text-[11px] text-gray-500">Pague no momento em que receber sua pizza</p>
-                  </div>
-                </div>
-                <Banknote className="w-5 h-5 text-emerald-700 shrink-0" />
-              </label>
+              </div>
             </div>
           </div>
 
@@ -458,15 +397,13 @@ export default function CheckoutModal() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Gerando Cobrança SigiloPay...</span>
-                </>
-              ) : formData.paymentMethod === 'pix' ? (
-                <>
-                  <QrCode className="w-4 h-4" />
-                  <span>Pagar {formatCurrency(subtotal)} com PIX</span>
+                  <span>Gerando Cobrança Pix...</span>
                 </>
               ) : (
-                <span>Confirmar Pedido</span>
+                <>
+                  <QrCode className="w-4 h-4" />
+                  <span>Gerar Código Pix • {formatCurrency(subtotal)}</span>
+                </>
               )}
             </button>
           </div>
