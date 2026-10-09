@@ -9,11 +9,35 @@ async function testProduction() {
 
   // 1. Check title & top banner
   const content = await page.content();
-  console.log('Possui "Entrega para todo o Brasil":', content.includes('Entrega para todo o Brasil'));
-  console.log('Possui mencao publica a SigiloPay:', content.includes('SigiloPay'));
+  const hasBrasil = content.includes('Entrega para todo o Brasil');
+  const hasSP = content.includes('São Paulo e Região') || content.includes('São Paulo e região');
+  const hasSigilo = content.includes('SigiloPay');
+  const hasPizzaFoto = content.includes('pizzafoto.webp');
+  const hasSuperCombos = content.includes('Super Combos 🍕');
+  const hasCombosEspeciais = content.includes('Combos Especiais');
+  const hasHamburgueres = content.includes('Hambúrgueres Artesanais 🍔');
+  const hasBebidas = content.includes('Bebidas');
+  const hasMelhorPizzaria = content.includes('MELHOR PIZZARIA DELIVERY');
+  const hasClientes = content.includes('clientes.png');
+  const hasCozinha = content.includes('cozinha.png');
+
+  console.log('Possui "Entrega para todo o Brasil":', hasBrasil);
+  console.log('Possui "São Paulo e Região":', hasSP);
+  console.log('Possui menção pública a SigiloPay:', hasSigilo);
+  console.log('Usa foto de referência pizzafoto.webp:', hasPizzaFoto);
+  console.log('Seção Super Combos presente:', hasSuperCombos);
+  console.log('Seção Combos Especiais presente:', hasCombosEspeciais);
+  console.log('Seção Hambúrgueres presente:', hasHamburgueres);
+  console.log('Seção Bebidas presente:', hasBebidas);
+  console.log('Bloco MELHOR PIZZARIA DELIVERY presente:', hasMelhorPizzaria);
+  console.log('Fotos do ambiente presentes:', hasClientes && hasCozinha);
+
+  if (hasBrasil || hasSP || hasSigilo) {
+    throw new Error('Falha de conformidade nos textos do topo/gateway');
+  }
 
   // 2. Add first product to cart
-  const addBtn = page.locator('button:has-text("+"), button:has-text("ADICIONAR"), button:has-text("Pedir")').first();
+  const addBtn = page.locator('button[aria-label*="Adicionar"], #menu-pizzas .cursor-pointer').first();
   await addBtn.click();
   await page.waitForTimeout(500);
 
@@ -50,8 +74,8 @@ async function testProduction() {
   const hasOrderId = pixContent.includes('DON-') || pixContent.includes('PEDIDO:');
 
   console.log('Pix Renderizado:', hasPixCode);
-  console.log('QR Code visivel:', hasQr > 0);
-  console.log('ID do Pedido visivel:', hasOrderId);
+  console.log('QR Code visível:', hasQr > 0);
+  console.log('ID do Pedido visível:', hasOrderId);
   console.log('Tela branca detectada:', pixContent.length < 500);
 
   // Check Meu Pedido modal by closing PixScreen first
