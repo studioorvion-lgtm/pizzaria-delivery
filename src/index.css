@@ -4,16 +4,115 @@
 
 @layer base {
   body {
-    background-color: #f6f7f9;
-    color: #1f2937;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f4f4f5;
+    color: #18181b;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Custom scrollbars and styling */
+.timer-box { 
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2); 
+}
+
+.card-shadow { 
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+}
+
+.banner-top { 
+  background: #dc2626; 
+}
+
+.premium-box { 
+  background: linear-gradient(135deg, #004d2a 0%, #006437 100%); 
+  border: 2px solid #fbbf24; 
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); opacity: 0.7; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.7; }
+}
+.animate-pulse-fast { 
+  animation: pulse-green 1.5s infinite; 
+}
+
+@keyframes pulse-soft {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
+}
+.animate-card-pulse { 
+  animation: pulse-soft 2s infinite ease-in-out;
+  border: 2px solid #f97316 !important;
+}
+
+.scarcity-wrap {
+  margin: 10px 0 8px;
+}
+.scarcity-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+.scarcity-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+.scarcity-live {
+  font-size: 10px;
+  font-weight: 900;
+  color: #991b1b;
+  text-transform: uppercase;
+  animation: scarcityBlink 1.2s infinite;
+}
+.scarcity-bar {
+  height: 8px;
+  background: #fee2e2;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.08);
+}
+.scarcity-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ef4444, #f97316, #facc15);
+  border-radius: 999px;
+  animation: scarcityPulse 1.4s infinite;
+}
+
+@keyframes scarcityPulse {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.18); }
+}
+
+@keyframes scarcityBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+
+.burger-card-compact {
+  min-height: 142px;
+}
+
+.drink-card-premium {
+  min-width: 145px;
+}
+
+/* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -30,19 +129,4 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
-}
-
-@keyframes pulseGlow {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
-  }
-  50% {
-    transform: scale(1.02);
-    box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
-  }
-}
-
-.pulse-glow {
-  animation: pulseGlow 2s infinite ease-in-out;
 }

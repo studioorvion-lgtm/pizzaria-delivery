@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { AMBIENCE_PHOTOS } from '../data/menu';
 
 export default function TrustAndAmbience() {
-  const [secondsLeft, setSecondsLeft] = useState(24 * 60 + 20); // 24:20
+  const [secondsLeft, setSecondsLeft] = useState(25 * 60);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 24 * 60 + 59));
+      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 25 * 60));
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -16,74 +16,62 @@ export default function TrustAndAmbience() {
   const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
   return (
-    <section className="w-full max-w-4xl mx-auto px-3 sm:px-4 py-5 space-y-4">
-      {/* 1. Timer Callout Box */}
-      <div className="flex flex-col items-center justify-center text-center">
-        <span className="text-[11px] sm:text-xs font-extrabold uppercase text-gray-500 tracking-wider mb-1">
-          A PROMOÇÃO ENCERRA EM:
-        </span>
-        <div className="bg-[#D32F2F] text-white px-6 py-2 rounded-xl shadow-sm flex items-center justify-center">
-          <span className="font-mono text-2xl sm:text-3xl font-black tracking-widest text-yellow-300">
+    <>
+      {/* Timer Callout Box */}
+      <section className="max-w-xl mx-auto px-4 mt-8 mb-4">
+        <div className="bg-white rounded-2xl p-6 text-center shadow-sm border border-gray-100">
+          <h2 className="text-red-600 font-black text-lg mb-3 tracking-tight uppercase">
+            A Promoção Encerra em:
+          </h2>
+          <div className="bg-red-600 text-white inline-block px-8 py-2 rounded-xl text-4xl font-black timer-box">
             {formatted}
-          </span>
+          </div>
         </div>
-      </div>
+      </section>
 
-      {/* 2. Bloco de Prova / Destaque (Faixa Verde Escura) */}
-      <div className="bg-[#1b4332] text-white rounded-2xl p-5 sm:p-6 text-center shadow-sm border border-emerald-900/30 relative overflow-hidden">
-        <div className="relative z-10 flex flex-col items-center">
-          <h3 className="text-base sm:text-xl md:text-2xl font-black uppercase tracking-tight text-white mb-1">
+      {/* Bloco de Prova / Destaque (Faixa Verde Escura Premium) */}
+      <section className="max-w-4xl mx-auto px-4 mt-12">
+        <div className="premium-box rounded-3xl p-8 text-center text-white shadow-2xl">
+          <p className="text-yellow-400 font-bold tracking-[0.3em] text-xs uppercase mb-2"></p>
+          <h2 className="text-2xl sm:text-3xl font-black mb-1 italic">
             MELHOR PIZZARIA DELIVERY
-          </h3>
-          <p className="text-xs sm:text-sm font-bold text-emerald-200 tracking-widest uppercase mb-2">
+          </h2>
+          <p className="text-lg sm:text-xl font-light tracking-widest mb-4">
             2024 - 2025
           </p>
-
-          {/* 5 Estrelas Douradas */}
-          <div className="flex items-center gap-1 text-amber-400 text-lg sm:text-xl">
+          <div className="flex justify-center gap-2 text-2xl text-yellow-400">
             <span>★</span>
             <span>★</span>
             <span>★</span>
             <span>★</span>
             <span>★</span>
           </div>
-
-          <p className="text-[11px] sm:text-xs text-emerald-100 font-medium mt-2 max-w-md">
-            Mais de 15.000 pizzas entregues pontualmente no ponto ideal da massa e do queijo.
-          </p>
         </div>
-      </div>
+      </section>
 
-      {/* 3. Fotos do Ambiente (Duas imagens grandes lado a lado com cantos arredondados) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1">
-        <div className="h-48 sm:h-56 md:h-64 rounded-2xl overflow-hidden shadow-sm relative group bg-gray-100">
-          <img
-            src={AMBIENCE_PHOTOS.kitchen}
-            alt="Forno à lenha tradicional da Donatello Pizzaria"
-            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3.5">
-            <span className="text-white text-xs sm:text-sm font-bold drop-shadow">
-              🔥 Forno a Lenha Tradicional & Massa Artesanal
-            </span>
+      {/* Fotos do Ambiente */}
+      <section className="max-w-6xl mx-auto px-4 mt-8 mb-8">
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="bg-white rounded-3xl p-3 shadow-lg">
+            <img
+              src={AMBIENCE_PHOTOS.kitchen}
+              alt="Cozinha da pizzaria"
+              className="w-full rounded-2xl object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+          </div>
+          <div className="bg-white rounded-3xl p-3 shadow-lg">
+            <img
+              src={AMBIENCE_PHOTOS.restaurant}
+              alt="Clientes da pizzaria"
+              className="w-full rounded-2xl object-cover"
+              loading="lazy"
+              decoding="async"
+            />
           </div>
         </div>
-
-        <div className="h-48 sm:h-56 md:h-64 rounded-2xl overflow-hidden shadow-sm relative group bg-gray-100">
-          <img
-            src={AMBIENCE_PHOTOS.restaurant}
-            alt="Ambiente e expedição Donatello Pizzaria"
-            className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3.5">
-            <span className="text-white text-xs sm:text-sm font-bold drop-shadow">
-              📍 Cozinha de Padrão Internacional & Entrega Express
-            </span>
-          </div>
-        </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }

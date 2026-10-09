@@ -8,50 +8,55 @@ export default function DrinksSection() {
   const { addItem } = useCart();
 
   return (
-    <section className="w-full max-w-4xl mx-auto px-3 sm:px-4 py-4" id="bebidas">
-      <div className="mb-3">
-        <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">
-          ADICIONE AO PEDIDO
+    <section id="bebidas" className="max-w-4xl mx-auto px-4 mt-10 mb-6">
+      <div className="flex justify-between items-end mb-4">
+        <div>
+          <p className="text-xs font-black text-green-700 uppercase tracking-[0.22em]">
+            Adicione ao pedido
+          </p>
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight">
+            Bebidas
+          </h2>
+        </div>
+        <span className="text-xs font-bold text-gray-400">
+          Arraste para o lado ➔
         </span>
-        <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 tracking-tight">
-          Bebidas
-        </h2>
       </div>
 
-      {/* Grid responsivo com scroll horizontal suave no mobile */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-4 gap-2.5 sm:gap-3">
+      <div
+        id="drinkCarousel"
+        className="flex gap-4 overflow-x-auto pb-4 snap-x scroll-smooth no-scrollbar"
+      >
         {BEBIDAS.map((drink) => (
           <div
             key={drink.id}
-            className="bg-white rounded-xl border border-gray-100 p-2 sm:p-2.5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-md transition flex flex-col items-center text-center justify-between group"
+            className="drink-card-premium snap-start bg-white rounded-3xl p-3 card-shadow border border-gray-100 flex flex-col justify-between shrink-0"
           >
-            {/* Foto da Bebida */}
-            <div className="w-16 h-20 sm:w-20 sm:h-24 flex items-center justify-center mb-1 overflow-hidden">
+            <div className="flex items-center justify-center rounded-2xl mb-3 bg-gradient-to-b from-white to-slate-50 p-2.5 h-[118px]">
               <img
                 src={drink.image}
                 alt={drink.name}
-                className="max-h-full max-w-full object-contain group-hover:scale-105 transition duration-200"
+                className="max-h-full max-w-full object-contain"
                 loading="lazy"
+                decoding="async"
               />
             </div>
 
-            <div className="w-full pt-1 border-t border-gray-50 flex flex-col items-center">
-              <h3 className="text-[11px] sm:text-xs font-bold text-gray-800 line-clamp-1 mb-1">
+            <div>
+              <h3 className="font-black text-sm text-gray-900 leading-tight min-h-[38px] line-clamp-2">
                 {drink.name}
               </h3>
-
-              <div className="flex items-center justify-between w-full px-1">
-                <span className="text-xs sm:text-sm font-extrabold text-gray-900">
+              <div className="flex items-center justify-between mt-3">
+                <span className="font-black text-green-700 text-sm">
                   {formatCurrency(drink.price)}
                 </span>
-
                 <button
+                  type="button"
                   onClick={() => addItem(drink)}
-                  className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-[#D32F2F] text-white flex items-center justify-center hover:bg-[#B71C1C] transition active:scale-90 shadow-sm cursor-pointer shrink-0"
-                  title="Adicionar ao pedido"
+                  className="w-9 h-9 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-md flex items-center justify-center transition active:scale-90 cursor-pointer"
                   aria-label={`Adicionar ${drink.name}`}
                 >
-                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <Plus className="w-4 h-4 stroke-[3]" />
                 </button>
               </div>
             </div>

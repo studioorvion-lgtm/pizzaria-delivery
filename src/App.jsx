@@ -27,7 +27,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <CartProvider>
-        <div className="min-h-screen bg-[#f6f7f9] text-gray-900 flex flex-col font-sans pb-16 md:pb-0">
+        <div className="min-h-screen bg-[#f4f4f5] text-gray-900 flex flex-col font-sans pb-16 md:pb-0">
           {/* 1. Faixa Superior Fina */}
           <TopBanner />
 
