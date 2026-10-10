@@ -2,11 +2,14 @@ import assert from 'assert';
 import checkoutHandler from '../api/checkout.js';
 import statusHandler from '../api/status.js';
 import webhookHandler from '../api/webhooks/sigilopay.js';
+import adminOrdersHandler from '../api/admin/orders.js';
 import { ordersService } from '../lib/orders.js';
+import { sigiloPay } from '../lib/sigilopay.js';
 
-// Carrega variáveis de ambiente locais
+// Carrega variáveis de ambiente locais se houver
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -55,7 +58,7 @@ function createMockRes() {
 
 // Gerador de CPF válido para teste
 function generateTestCPF() {
-  const rnd = n => Math.round(Math.random() * n);
+  const rnd = (n) => Math.round(Math.random() * n);
   const mod = (dividend, divider) => Math.round(dividend - Math.floor(dividend / divider) * divider);
   const n = Array(9).fill(0).map(() => rnd(9));
   let d1 = n.reduce((total, number, index) => total + number * (10 - index), 0);
@@ -68,15 +71,34 @@ function generateTestCPF() {
 }
 
 async function runTests() {
-  console.log('--- INICIANDO TESTES DO SISTEMA DE PEDIDOS E SIGILOPAY ---');
+  console.log('--- INICIANDO TESTES DO SISTEMA (SEM CRIAR COBRANÇA REAL NO GATEWAY) ---');
+
+  const ordersFilePath = path.join(__dirname, '..', '.data', 'orders.json');
+  let ordersBackup = null;
+  if (fs.existsSync(ordersFilePath)) {
+    ordersBackup = fs.readFileSync(ordersFilePath, 'utf8');
+  }
+
+  // MOCK de segurança: impede criação de cobrança Pix real em SigiloPay durante testes
+  const originalCreatePix = sigiloPay.createPixPayment;
+  const mockTransactionId = `mock_tx_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  sigiloPay.createPixPayment = async (_params) => {
+    return {
+      success: true,
+      transactionId: mockTransactionId,
+      pixCode: '00020126580014br.gov.bcb.pix0136mock-test-key520400005303986540532.905802BR5925DONATELLO6009SAOPAULO62070503***6304ABCD',
+      qrCodeImage: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      status: 'PENDING',
+    };
+  };
 
   const validCpf = generateTestCPF();
   const testItems = [
-    { id: 'combo-2pp', name: '02 Pizzas PP + 1 Refri 1L', price: 32.90, quantity: 1 }
+    { id: 'combo-2pp', name: '02 Pizzas PP + 1 Refri 1L', price: 32.90, quantity: 1 },
   ];
 
-  // TESTE 1: Criar pedido Pix via SigiloPay
-  console.log('\n[1/5] Testando /api/checkout com Pix SigiloPay...');
+  // TESTE 1: Criar pedido Pix via Checkout
+  console.log('\n[1/7] Testando /api/checkout com Pix...');
   const reqCheckout = {
     method: 'POST',
     body: {
@@ -85,7 +107,7 @@ async function runTests() {
         fullName: 'Roberto Silva Santos',
         phone: '11988887777',
         cpf: validCpf,
-        email: 'roberto@exemplo.com'
+        email: 'roberto@exemplo.com',
       },
       address: {
         cep: '01310-100',
@@ -93,33 +115,30 @@ async function runTests() {
         number: '1000',
         neighborhood: 'Bela Vista',
         city: 'São Paulo',
-        state: 'SP'
+        state: 'SP',
       },
       paymentMethod: 'pix',
-      idempotencyKey: `test_idem_${Date.now()}`
-    }
+      idempotencyKey: `test_idem_${Date.now()}`,
+    },
   };
   const resCheckout = createMockRes();
   await checkoutHandler(reqCheckout, resCheckout);
 
-  console.log('DEBUG RES:', resCheckout.statusCode, resCheckout.body);
   assert.strictEqual(resCheckout.statusCode, 200, 'Checkout deve responder status 200');
   assert.strictEqual(resCheckout.body.success, true, 'Checkout deve indicar success: true');
   assert.ok(resCheckout.body.orderId, 'Deve retornar orderId');
-  assert.ok(resCheckout.body.transactionId, 'Deve retornar transactionId');
+  assert.strictEqual(resCheckout.body.transactionId, mockTransactionId, 'Deve usar transactionId');
   assert.strictEqual(resCheckout.body.status, 'PENDING', 'Pedido inicial deve ser PENDING');
   assert.ok(resCheckout.body.pix?.code, 'Deve retornar código Pix Copia e Cola');
-  console.log('✓ Pedido criado com sucesso no SigiloPay:', {
+  console.log('✓ Pedido criado com sucesso (mocked):', {
     orderId: resCheckout.body.orderId,
     transactionId: resCheckout.body.transactionId,
-    pixCodeStart: resCheckout.body.pix.code.slice(0, 30) + '...'
   });
 
   const orderId = resCheckout.body.orderId;
-  const transactionId = resCheckout.body.transactionId;
 
   // TESTE 2: Anti-duplicação / Idempotência
-  console.log('\n[2/5] Testando prevenção de pedido duplicado (idempotência)...');
+  console.log('\n[2/7] Testando prevenção de pedido duplicado (idempotência)...');
   const resDup = createMockRes();
   await checkoutHandler(reqCheckout, resDup);
   assert.strictEqual(resDup.statusCode, 200);
@@ -128,7 +147,7 @@ async function runTests() {
   console.log('✓ Proteção de duplicação validada.');
 
   // TESTE 3: Consulta de status inicial (deve estar PENDING)
-  console.log('\n[3/5] Consultando status inicial via /api/status...');
+  console.log('\n[3/7] Consultando status inicial via /api/status...');
   const reqStatus = { method: 'GET', query: { id: orderId } };
   const resStatus = createMockRes();
   await statusHandler(reqStatus, resStatus);
@@ -138,28 +157,29 @@ async function runTests() {
   console.log('✓ Status pendente validado.');
 
   // TESTE 4: Webhook SigiloPay com confirmação real
-  console.log('\n[4/5] Simulando recebimento de Webhook TRANSACTION_PAID da SigiloPay...');
+  console.log('\n[4/7] Simulando recebimento de Webhook TRANSACTION_PAID...');
   const stockBefore = ordersService.getStock()['combo-2pp'];
   const reqWebhook = {
     method: 'POST',
     body: {
       event: 'TRANSACTION_PAID',
       transaction: {
-        id: transactionId,
+        id: mockTransactionId,
         status: 'COMPLETED',
         amount: 32.90,
-        paidAt: new Date().toISOString()
-      }
-    }
+        paidAt: new Date().toISOString(),
+      },
+    },
   };
   const resWebhook = createMockRes();
   await webhookHandler(reqWebhook, resWebhook);
   assert.strictEqual(resWebhook.statusCode, 200);
   assert.strictEqual(resWebhook.body.ok, true);
   assert.strictEqual(resWebhook.body.status, 'COMPLETED');
+  console.log('✓ Webhook processado com sucesso.');
 
   // TESTE 5: Atualização para PAGO e baixa no estoque
-  console.log('\n[5/5] Verificando atualização para PAGO e baixa no estoque...');
+  console.log('\n[5/7] Verificando atualização para PAGO e baixa no estoque...');
   const orderUpdated = ordersService.getOrder(orderId);
   assert.strictEqual(orderUpdated.status, 'PAID', 'Status do pedido deve ser atualizado para PAID');
   assert.strictEqual(orderUpdated.isPaid, true, 'isPaid deve ser true');
@@ -170,10 +190,81 @@ async function runTests() {
   assert.strictEqual(stockAfter, stockBefore - 1, 'Estoque deve ter diminuído em 1 unidade');
   console.log('✓ Pedido confirmado como PAGO e estoque atualizado com sucesso!');
 
-  console.log('\n=== TODOS OS 5 TESTES PASSARAM COM 100% DE SUCESSO! ===\n');
+  // TESTE 6: Painel Administrativo - Autenticação
+  console.log('\n[6/7] Testando segurança e login da API Administrativa...');
+  // 6.1: Acesso não autorizado sem token
+  const resAdminUnauth = createMockRes();
+  await adminOrdersHandler({ method: 'GET', headers: {}, query: {} }, resAdminUnauth);
+  assert.strictEqual(resAdminUnauth.statusCode, 401, 'Deve rejeitar sem autenticação');
+
+  // 6.2: Tentativa de login com senha incorreta
+  const resLoginFail = createMockRes();
+  await adminOrdersHandler({
+    method: 'POST',
+    body: { action: 'login', password: 'senha_errada_xyz' },
+    headers: {},
+  }, resLoginFail);
+  assert.strictEqual(resLoginFail.statusCode, 401, 'Login com senha errada deve retornar 401');
+
+  // 6.3: Login com senha correta
+  const resLoginSuccess = createMockRes();
+  await adminOrdersHandler({
+    method: 'POST',
+    body: { action: 'login', password: 'donatello2026' },
+    headers: {},
+  }, resLoginSuccess);
+  assert.strictEqual(resLoginSuccess.statusCode, 200, 'Login correto deve retornar 200');
+  assert.ok(resLoginSuccess.body.token, 'Deve retornar token de autenticação');
+  const adminToken = resLoginSuccess.body.token;
+  console.log('✓ Autenticação administrativa validada.');
+
+  // TESTE 7: Painel Administrativo - Listagem de Pedidos e Métricas
+  console.log('\n[7/7] Consultando pedidos e métricas pelo Painel Administrativo...');
+  const resAdminData = createMockRes();
+  await adminOrdersHandler({
+    method: 'GET',
+    headers: { authorization: `Bearer ${adminToken}` },
+    query: { sync: 'false' },
+  }, resAdminData);
+
+  assert.strictEqual(resAdminData.statusCode, 200, 'Deve retornar 200 para admin autenticado');
+  assert.strictEqual(resAdminData.body.success, true);
+  assert.ok(Array.isArray(resAdminData.body.orders), 'Deve retornar array de pedidos');
+  assert.ok(resAdminData.body.metrics, 'Deve retornar objeto de métricas');
+  assert.ok(typeof resAdminData.body.metrics.ordersToday === 'number', 'Deve calcular ordersToday');
+  assert.ok(typeof resAdminData.body.metrics.paidCount === 'number', 'Deve calcular paidCount');
+  assert.ok(typeof resAdminData.body.metrics.pendingCount === 'number', 'Deve calcular pendingCount');
+
+  // Verifica que o pedido acabou de entrar e está presente
+  const foundOrder = resAdminData.body.orders.find((o) => o.orderId === orderId);
+  assert.ok(foundOrder, 'Pedido recém-criado deve estar visível no painel');
+  assert.strictEqual(foundOrder.status, 'PAID', 'Status no painel deve refletir PAID');
+
+  console.log('✓ Pedidos e métricas retornados com sucesso:', {
+    totalOrders: resAdminData.body.metrics.totalOrders,
+    ordersToday: resAdminData.body.metrics.ordersToday,
+    paidCount: resAdminData.body.metrics.paidCount,
+    pendingCount: resAdminData.body.metrics.pendingCount,
+  });
+
+  // Restaura implementação original
+  sigiloPay.createPixPayment = originalCreatePix;
+
+  // Limpeza de estado de teste: restaura arquivo de pedidos original
+  try {
+    if (ordersBackup) {
+      fs.writeFileSync(path.join(__dirname, '..', '.data', 'orders.json'), ordersBackup, 'utf8');
+    }
+    const tmpOrders = path.join(os.tmpdir(), 'pizzaria_donatello_data');
+    if (fs.existsSync(tmpOrders)) {
+      fs.rmSync(tmpOrders, { recursive: true, force: true });
+    }
+  } catch {}
+
+  console.log('\n=== TODOS OS 7 TESTES PASSARAM COM 100% DE SUCESSO! ===\n');
 }
 
-runTests().catch(err => {
+runTests().catch((err) => {
   console.error('FALHA NOS TESTES:', err);
   process.exit(1);
 });

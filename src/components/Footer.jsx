@@ -1,7 +1,7 @@
 import React from 'react';
 import { siteConfig } from '../config/site';
 
-export default function Footer({ onOpenPrivacy, onOpenTerms }) {
+export default function Footer({ onOpenPrivacy, onOpenTerms, onOpenAdmin }) {
   return (
     <footer className="bg-white border-t border-gray-200 py-10 px-4 text-center">
       <div className="max-w-4xl mx-auto">
@@ -33,6 +33,16 @@ export default function Footer({ onOpenPrivacy, onOpenTerms }) {
         <p className="text-[10px] text-gray-400 uppercase tracking-tighter">
           © 2026 {siteConfig.name} | Todos os direitos reservados
         </p>
+
+        {onOpenAdmin && (
+          <button
+            type="button"
+            onClick={onOpenAdmin}
+            className="mt-3 text-[11px] text-gray-400 hover:text-emerald-700 font-semibold cursor-pointer transition underline inline-block"
+          >
+            Acesso Lojista (Painel)
+          </button>
+        )}
       </div>
     </footer>
   );
