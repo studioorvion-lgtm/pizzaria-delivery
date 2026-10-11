@@ -64,7 +64,7 @@ export default async function handler(req, res) {
       if (!orderId || !status) {
         return res.status(400).json({ success: false, error: 'orderId e status são obrigatórios.' });
       }
-      const updated = ordersService.updateOrderStatus(orderId, status, { orderProgress, notes });
+      const updated = await ordersService.updateOrderStatus(orderId, status, { orderProgress, notes });
       if (!updated) {
         return res.status(404).json({ success: false, error: 'Pedido não encontrado.' });
       }
@@ -89,7 +89,7 @@ export default async function handler(req, res) {
         syncResult = await ordersService.syncPendingWithGateway(sigiloPay);
       }
 
-      const orders = ordersService.getAllOrders();
+      const orders = await ordersService.getAllOrders();
       const todayStr = getTodayString();
 
       // Métricas

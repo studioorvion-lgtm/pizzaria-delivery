@@ -16,9 +16,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    let order = ordersService.getOrder(id);
+    let order = await ordersService.getOrder(id);
 
-    // Se já estiver pago em memória, retorna imediatamente
+    // Se já estiver pago no banco/memória, retorna imediatamente
     if (order && order.isPaid) {
       return res.status(200).json({
         success: true,
@@ -36,9 +36,9 @@ export default async function handler(req, res) {
       const checkResult = await sigiloPay.checkTransaction(txId);
       
       if (checkResult.success && checkResult.isPaid) {
-        // 9 & 12: Só confirmar após retorno real do SigiloPay, atualizar pedido para PAGO e atualizar estoque
-        ordersService.confirmPayment(id, checkResult.amount, checkResult.payedAt);
-        order = ordersService.getOrder(id);
+        // Atualiza pedido para PAGO e persiste no banco
+        await ordersService.confirmPayment(id, checkResult.amount, checkResult.payedAt);
+        order = await ordersService.getOrder(id);
 
         return res.status(200).json({
           success: true,
@@ -48,6 +48,9 @@ export default async function handler(req, res) {
           paidAt: checkResult.payedAt,
           orderId: order?.orderId || id,
         });
+      } else if (checkResult.success && checkResult.status && checkResult.status !== 'PENDING') {
+        await ordersService.updateOrderStatus(id, checkResult.status);
+        order = await ordersService.getOrder(id);
       }
     }
 

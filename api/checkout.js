@@ -34,7 +34,7 @@ export default async function handler(req, res) {
 
     // 3. Verificação de idempotência / duplicidade
     const checkKey = idempotencyKey || `${customer.phone}_${JSON.stringify(items)}`;
-    const duplicateOrder = ordersService.checkIdempotency(checkKey);
+    const duplicateOrder = await ordersService.checkIdempotency(checkKey);
     if (duplicateOrder) {
       return res.status(200).json({
         success: true,
@@ -52,12 +52,11 @@ export default async function handler(req, res) {
     const total = subtotal; // entrega grátis conforme informado na landing page
 
     const orderId = `DON-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
-    const transactionIdentifier = `pizza_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
 
     // 5. Integração com SigiloPay se Pix
     if (paymentMethod === 'pix') {
       const pixResult = await sigiloPay.createPixPayment({
-        identifier: transactionIdentifier,
+        identifier: orderId,
         amount: total,
         client: {
           name: customer.fullName,
@@ -74,10 +73,10 @@ export default async function handler(req, res) {
         });
       }
 
-      // Cria pedido com status PENDING (não conta como venda paga ainda)
-      const order = ordersService.createOrder({
+      // Cria pedido com status PENDING e salva imediatamente no banco de dados
+      const order = await ordersService.createOrder({
         orderId,
-        transactionId: pixResult.transactionId || transactionIdentifier,
+        transactionId: pixResult.transactionId || orderId,
         items,
         customer,
         address,
@@ -86,6 +85,8 @@ export default async function handler(req, res) {
           code: pixResult.pixCode,
           qrCodeImage: pixResult.qrCodeImage,
         },
+        paymentMethod: 'pix',
+        idempotencyKey: checkKey,
       });
 
       ordersService.saveIdempotency(checkKey, order);
@@ -102,7 +103,7 @@ export default async function handler(req, res) {
     }
 
     // Outros métodos (dinheiro/cartão na entrega)
-    const order = ordersService.createOrder({
+    const order = await ordersService.createOrder({
       orderId,
       transactionId: null,
       items,
@@ -110,6 +111,8 @@ export default async function handler(req, res) {
       address,
       total,
       pix: null,
+      paymentMethod,
+      idempotencyKey: checkKey,
     });
 
     return res.status(200).json({
