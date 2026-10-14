@@ -2,9 +2,6 @@ import assert from 'assert';
 import {
   trackPurchase,
   isPurchaseAlreadyTracked,
-  markPurchaseAsTracked,
-  DEFAULT_GOOGLE_ADS_ID,
-  DEFAULT_PURCHASE_LABEL,
 } from '../src/utils/tracking.js';
 
 // Setup Mock Window, DOM Storage e dataLayer

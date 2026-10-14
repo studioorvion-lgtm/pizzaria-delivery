@@ -15,6 +15,14 @@ export const siteConfig = {
   hours: 'Todos os dias: 18h às 23h30',
   cnpj: '45.123.890/0001-44',
 
+  // Coordenadas geográficas reais da loja para cálculo de proximidade
+  // Se null, o sistema não inventa distância fictícia
+  coordinates: {
+    lat: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PIZZERIA_LAT) ? Number(import.meta.env.VITE_PIZZERIA_LAT) : null,
+    lng: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PIZZERIA_LNG) ? Number(import.meta.env.VITE_PIZZERIA_LNG) : null,
+  },
+  address: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_PIZZERIA_ADDRESS) || null,
+
   getWhatsAppLink(message = '') {
     const raw = this.phone.replace(/\D/g, '');
     if (!raw) return null;

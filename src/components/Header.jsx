@@ -1,11 +1,42 @@
-import React from 'react';
-import { ShoppingBag, Receipt } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ShoppingBag, Receipt, Navigation } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { siteConfig } from '../config/site';
+import {
+  getCachedClientCoords,
+  requestClientLocation,
+  getPizzeriaDistance,
+  formatDistanceString,
+} from '../utils/geolocation';
 
 export default function Header({ onOpenOrders }) {
   const { totalItems, setIsCartOpen, activeOrder, paidOrder } = useCart();
   const hasOrder = Boolean(activeOrder || paidOrder);
+
+  const [distance, setDistance] = useState(() => {
+    const cached = getCachedClientCoords();
+    return cached ? getPizzeriaDistance(cached) : null;
+  });
+
+  useEffect(() => {
+    // Apenas solicita geolocalização se a pizzaria tiver coordenadas cadastradas no siteConfig
+    if (siteConfig.coordinates?.lat && siteConfig.coordinates?.lng) {
+      const cached = getCachedClientCoords();
+      if (cached) {
+        setDistance(getPizzeriaDistance(cached));
+      } else {
+        requestClientLocation(
+          (coords) => {
+            setDistance(getPizzeriaDistance(coords));
+          },
+          () => {
+            // Se negado pelo cliente, oculta a distância discretamente sem erro
+            setDistance(null);
+          }
+        );
+      }
+    }
+  }, []);
 
   return (
     <header className="bg-white px-4 pt-4 pb-6 rounded-b-[40px] shadow-sm text-center relative border-b border-gray-100">
@@ -62,9 +93,19 @@ export default function Header({ onOpenOrders }) {
       </h1>
 
       {/* Tempo de Entrega */}
-      <div className="text-[#006437] font-bold text-sm mb-3">
+      <div className="text-[#006437] font-bold text-sm mb-2">
         Tempo de Entrega <span className="bg-green-100 px-2 py-0.5 rounded text-green-700 font-extrabold">até 30 min</span>
       </div>
+
+      {/* Distância Real (só exibe se houver coordenadas configuradas e localização permitida) */}
+      {distance !== null && (
+        <div className="mt-1 mb-2.5 flex justify-center animate-fade-in">
+          <div className="bg-gray-100 text-gray-700 px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+            <Navigation className="w-3.5 h-3.5 text-red-500 fill-red-500 shrink-0" />
+            <span>Estamos a <strong className="font-extrabold text-gray-900">{formatDistanceString(distance)}</strong> de você</span>
+          </div>
+        </div>
+      )}
 
       {/* Informações seguras: pedido online ativo */}
       <div className="flex items-center justify-center gap-2 text-xs font-semibold text-gray-600">

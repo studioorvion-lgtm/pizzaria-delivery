@@ -23,7 +23,7 @@ export default function SuperCombos() {
             onClick={() => addItem(combo)}
             className={`${
               combo.isPulse ? 'animate-card-pulse' : ''
-            } bg-white p-4 rounded-3xl flex gap-5 card-shadow cursor-pointer active:scale-95 transition relative overflow-hidden border border-gray-100 group`}
+            } bg-white p-3 sm:p-4 rounded-3xl flex gap-3 sm:gap-5 card-shadow cursor-pointer active:scale-95 transition relative overflow-hidden border border-gray-100 group`}
           >
             {/* Badge Mais Pedida */}
             {combo.badge && (
@@ -36,7 +36,7 @@ export default function SuperCombos() {
             <img
               src={combo.image}
               alt={combo.name}
-              className="w-36 h-32 md:w-40 md:h-36 object-cover rounded-2xl shrink-0"
+              className="w-28 h-28 sm:w-36 sm:h-32 md:w-40 md:h-36 object-cover rounded-2xl shrink-0"
               loading="lazy"
               decoding="async"
             />
