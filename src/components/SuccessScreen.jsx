@@ -1,11 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CheckCircle2, MessageSquare, Home, Sparkles, Flame, Clock } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/validators';
 import { siteConfig } from '../config/site';
+import { trackPurchase } from '../utils/tracking';
 
 export default function SuccessScreen() {
   const { paidOrder, setPaidOrder } = useCart();
+
+  useEffect(() => {
+    if (paidOrder && (paidOrder.orderId || paidOrder.id || paidOrder.transactionId)) {
+      trackPurchase(paidOrder);
+    }
+  }, [paidOrder]);
 
   if (!paidOrder) return null;
 
