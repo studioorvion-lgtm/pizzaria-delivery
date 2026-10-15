@@ -47,6 +47,29 @@ export function formatPhone(val) {
     .replace(/(\d{5})(\d)/, '$1-$2');
 }
 
+export function isValidPhone(phone) {
+  if (!phone) return false;
+  const digits = String(phone).replace(/\D/g, '');
+  // Deve ter 10 dígitos (fixo) ou 11 dígitos (celular/WhatsApp)
+  if (digits.length !== 10 && digits.length !== 11) return false;
+  // Rejeita números com todos os dígitos iguais (ex: 00000000000, 11111111111)
+  if (/^(\d)\1+$/.test(digits)) return false;
+  // Valida DDD brasileiro (11 a 99)
+  const ddd = parseInt(digits.slice(0, 2), 10);
+  if (ddd < 11 || ddd > 99) return false;
+  // Se for celular (11 dígitos), o nono dígito (índice 2) deve ser 9
+  if (digits.length === 11 && digits.charAt(2) !== '9') return false;
+  return true;
+}
+
+export function isValidCEP(cep) {
+  if (!cep) return false;
+  const digits = String(cep).replace(/\D/g, '');
+  if (digits.length !== 8) return false;
+  if (/^(\d)\1{7}$/.test(digits)) return false;
+  return true;
+}
+
 export function formatCEP(val) {
   const digits = String(val).replace(/\D/g, '').slice(0, 8);
   return digits.replace(/(\d{5})(\d)/, '$1-$2');

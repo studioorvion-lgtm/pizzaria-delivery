@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Receipt, Navigation } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { siteConfig } from '../config/site';
+import { siteConfig, getBusinessHoursStatus } from '../config/site';
 import {
   getCachedClientCoords,
   requestClientLocation,
@@ -12,6 +12,15 @@ import {
 export default function Header({ onOpenOrders }) {
   const { totalItems, setIsCartOpen, activeOrder, paidOrder } = useCart();
   const hasOrder = Boolean(activeOrder || paidOrder);
+  const [businessStatus, setBusinessStatus] = useState(() => getBusinessHoursStatus());
+
+  useEffect(() => {
+    // Atualiza status a cada minuto
+    const interval = setInterval(() => {
+      setBusinessStatus(getBusinessHoursStatus());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const [distance, setDistance] = useState(() => {
     const cached = getCachedClientCoords();
@@ -112,12 +121,24 @@ export default function Header({ onOpenOrders }) {
         <span className="text-green-600 font-bold">● Pedido Online Ativo</span>
       </div>
 
-      {/* Badge Aberto Agora */}
-      <div className="mt-4 flex justify-center">
-        <div className="bg-green-100 text-green-700 px-6 py-1 rounded-full text-xs font-black flex items-center gap-2">
-          <span className="h-2 w-2 bg-green-500 rounded-full animate-pulse-fast"></span>
-          <span>ABERTO AGORA</span>
-        </div>
+      {/* Badge de Funcionamento Realista */}
+      <div className="mt-4 flex flex-col items-center justify-center gap-1">
+        {businessStatus.isOpen ? (
+          <div className="bg-emerald-100 text-emerald-800 px-5 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-2 shadow-2xs">
+            <span className="h-2 w-2 bg-emerald-500 rounded-full animate-pulse"></span>
+            <span>Aberto agora • 18h às 23h30</span>
+          </div>
+        ) : (
+          <>
+            <div className="bg-amber-100 text-amber-900 px-5 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-2xs">
+              <span className="h-2 w-2 bg-amber-500 rounded-full"></span>
+              <span>Fechado no momento • Abre às 18h00</span>
+            </div>
+            <p className="text-[11px] text-gray-500 font-medium">
+              Pedidos online disponíveis • Entregas a partir das 18h
+            </p>
+          </>
+        )}
       </div>
     </header>
   );

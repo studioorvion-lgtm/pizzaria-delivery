@@ -21,9 +21,7 @@ export default function SuperCombos() {
           <div
             key={combo.id}
             onClick={() => addItem(combo)}
-            className={`${
-              combo.isPulse ? 'animate-card-pulse' : ''
-            } bg-white p-3 sm:p-4 rounded-3xl flex gap-3 sm:gap-5 card-shadow cursor-pointer active:scale-95 transition relative overflow-hidden border border-gray-100 group`}
+            className="bg-white p-3 sm:p-4 rounded-3xl flex gap-3 sm:gap-5 card-shadow cursor-pointer active:scale-95 transition relative overflow-hidden border border-gray-100 group"
           >
             {/* Badge Mais Pedida */}
             {combo.badge && (
@@ -50,25 +48,6 @@ export default function SuperCombos() {
                 <p className="text-gray-500 text-xs mb-2 uppercase tracking-wide">
                   {combo.description}
                 </p>
-
-                {/* Scarcity Bar */}
-                {combo.scarcity && (
-                  <div className="scarcity-wrap">
-                    <div className="scarcity-top">
-                      <span className="scarcity-label">
-                        <span>🔥</span>
-                        <span>Restam {combo.scarcity.units}</span>
-                      </span>
-                      <span className="scarcity-live">acabando</span>
-                    </div>
-                    <div className="scarcity-bar">
-                      <div
-                        className="scarcity-fill"
-                        style={{ width: `${combo.scarcity.percent}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Preço e Botão */}

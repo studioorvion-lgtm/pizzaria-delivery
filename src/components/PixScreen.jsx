@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, Check, Clock, QrCode, ShieldCheck, RefreshCw, MessageSquare, X, AlertCircle } from 'lucide-react';
+import {
+  Copy,
+  Check,
+  Clock,
+  QrCode,
+  ShieldCheck,
+  RefreshCw,
+  MessageSquare,
+  X,
+  AlertCircle,
+  MapPin,
+  User,
+  ShoppingBag,
+  Zap,
+} from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/validators';
 import { siteConfig } from '../config/site';
@@ -69,7 +83,6 @@ export default function PixScreen() {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(pixCode).catch(() => {});
       } else {
-        // Fallback para navegadores sem permissão de clipboard
         const input = document.createElement('textarea');
         input.value = pixCode;
         document.body.appendChild(input);
@@ -108,20 +121,15 @@ export default function PixScreen() {
     }
   };
 
-  const openWhatsApp = () => {
-    const msg = `Olá, ${siteConfig.name}! Acabei de gerar o pedido #${activeOrder.orderId} no valor de ${formatCurrency(
-      activeOrder.total
-    )} via Pix.`;
-    const link = siteConfig.getWhatsAppLink(msg);
-    if (link) {
-      window.open(link, '_blank');
-    }
-  };
+  const whatsappMsg = `Olá, ${siteConfig.name}! Gostaria de tirar uma dúvida sobre o meu pedido #${activeOrder.orderId} no valor de ${formatCurrency(activeOrder.total)}.`;
+  const whatsappUrl = siteConfig.getWhatsAppLink(whatsappMsg);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-fade-in">
       <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-gray-100 flex flex-col relative max-h-[95vh] overflow-y-auto">
-        {/* Top Header */}
+        {/* ========================================================= */}
+        {/* 1. RESUMO CLARO DO PEDIDO NO TOPO                         */}
+        {/* ========================================================= */}
         <div className="bg-gradient-to-r from-red-600 to-[#D32F2F] text-white p-4 sm:p-5 text-center relative">
           <button
             onClick={() => setActiveOrder(null)}
@@ -131,17 +139,20 @@ export default function PixScreen() {
             <X className="w-5 h-5" />
           </button>
 
-          <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-2 backdrop-blur-xs">
+          <div className="w-11 h-11 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-2 backdrop-blur-xs">
             <QrCode className="w-6 h-6 text-white" />
           </div>
 
           <h3 className="font-extrabold text-lg sm:text-xl text-white tracking-tight">
             Pagamento via Pix
           </h3>
-          <p className="text-xs text-red-100 mt-0.5">
-            Pedido <strong className="text-white font-mono">#{activeOrder.orderId}</strong> •{' '}
-            <span className="bg-yellow-400 text-gray-900 px-1.5 py-0.2 rounded font-bold">Aguardando pagamento</span>
-          </p>
+          <div className="flex items-center justify-center gap-2 mt-1 text-xs">
+            <span>Pedido <strong className="font-mono">#{activeOrder.orderId}</strong></span>
+            <span className="text-white/40">•</span>
+            <span className="bg-amber-400 text-gray-900 px-2 py-0.5 rounded-full font-extrabold text-[11px] shadow-2xs">
+              Aguardando Pagamento
+            </span>
+          </div>
         </div>
 
         {/* Content */}
@@ -153,55 +164,76 @@ export default function PixScreen() {
             </div>
           )}
 
-          {/* QR Code Container */}
-          <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl p-4 inline-block mx-auto max-w-xs shadow-inner">
+          {/* ========================================================= */}
+          {/* 2. VALOR TOTAL EM DESTAQUE GRANDE E LEGÍVEL               */}
+          {/* ========================================================= */}
+          <div className="bg-red-50/50 border border-red-100 rounded-xl py-3 px-4">
+            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
+              Valor Total do Pedido
+            </span>
+            <span className="text-2xl sm:text-3xl font-black text-[#D32F2F] tracking-tight">
+              {formatCurrency(activeOrder.total)}
+            </span>
+            <span className="block text-[11px] text-gray-500 mt-0.5">
+              Entrega Grátis inclusa
+            </span>
+          </div>
+
+          {/* ========================================================= */}
+          {/* 3. QR CODE CENTRALIZADO COM BORDA SUAVE E FUNDO BRANCO    */}
+          {/* ========================================================= */}
+          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 inline-block mx-auto max-w-xs shadow-inner">
             {qrCodeImage ? (
               <img
                 src={qrCodeImage}
                 alt="QR Code Pix"
-                className="w-48 h-48 sm:w-56 sm:h-56 mx-auto object-contain rounded-lg bg-white p-2 shadow-xs"
+                className="w-48 h-48 sm:w-56 sm:h-56 mx-auto object-contain rounded-xl bg-white p-2 shadow-xs border border-gray-100"
               />
             ) : (
               <div className="w-48 h-48 flex items-center justify-center text-gray-400 text-xs">
                 <span>Carregando QR Code...</span>
               </div>
             )}
-
-            <div className="mt-2 text-xs font-bold text-gray-700">
-              Valor Total: <span className="text-[#D32F2F] text-base font-extrabold">{formatCurrency(activeOrder.total)}</span>
+            <div className="mt-2 flex items-center justify-center gap-1.5 text-xs text-amber-700 font-semibold">
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
+              <span>Código expira em: <strong className="font-mono">{timeFormatted}</strong></span>
             </div>
           </div>
 
-          {/* Pix Copia e Cola */}
+          {/* ========================================================= */}
+          {/* 4. CÓDIGO COPIA E COLA & 5. BOTÃO GRANDE 'COPIAR PIX'     */}
+          {/* ========================================================= */}
           {pixCode ? (
             <div className="space-y-2 text-left">
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Pix Copia e Cola:
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   readOnly
                   value={pixCode}
-                  className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-mono text-gray-700 truncate select-all focus:outline-none"
+                  onClick={(e) => e.target.select()}
+                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-xs font-mono text-gray-700 truncate select-all focus:outline-none focus:ring-1 focus:ring-red-400"
                 />
                 <button
+                  type="button"
                   onClick={copyToClipboard}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer active:scale-95 ${
+                  className={`py-3 px-5 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 transition cursor-pointer active:scale-95 shadow-md ${
                     copied
                       ? 'bg-emerald-600 text-white'
-                      : 'bg-[#D32F2F] hover:bg-[#B71C1C] text-white shadow-xs'
+                      : 'bg-[#D32F2F] hover:bg-[#B71C1C] text-white'
                   }`}
                 >
                   {copied ? (
                     <>
-                      <Check className="w-3.5 h-3.5" />
-                      <span>Pix Copiado!</span>
+                      <Check className="w-4 h-4" />
+                      <span>CÓDIGO COPIADO!</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>COPIAR PIX</span>
+                      <Copy className="w-4 h-4" />
+                      <span>COPIAR CÓDIGO PIX</span>
                     </>
                   )}
                 </button>
@@ -209,7 +241,7 @@ export default function PixScreen() {
             </div>
           ) : (
             <div className="bg-red-50 text-red-700 p-3 rounded-xl text-xs text-left">
-              Não foi possível carregar o código Pix. Clique em tentar novamente para gerar uma nova cobrança.
+              Não foi possível carregar o código Pix. Tente novamente.
               <button
                 onClick={() => {
                   setActiveOrder(null);
@@ -222,45 +254,136 @@ export default function PixScreen() {
             </div>
           )}
 
-          {/* Timer de expiração */}
-          <div className="flex items-center justify-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-200/60 py-2 px-3 rounded-xl font-medium">
-            <Clock className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>
-              O código expira em <strong className="font-mono">{timeFormatted}</strong>. Pague para iniciar o preparo.
-            </span>
+          {/* ========================================================= */}
+          {/* 6. INSTRUÇÃO SIMPLES EM PASSOS NUMERADOS                  */}
+          {/* ========================================================= */}
+          <div className="bg-gray-50 border border-gray-200/70 rounded-xl p-3.5 text-left text-xs text-gray-700 space-y-1.5">
+            <div className="font-extrabold text-gray-900 mb-1 flex items-center gap-1.5">
+              <span>Como pagar com Pix:</span>
+            </div>
+            <ol className="list-decimal list-inside space-y-1 text-gray-600 font-medium">
+              <li>Abra o aplicativo do seu banco</li>
+              <li>Escolha pagar via Pix</li>
+              <li>Selecione Copia e Cola ou aponte a câmera para o QR Code</li>
+              <li>Cole o código e confirme o pagamento</li>
+              <li>Retorne a esta tela para acompanhar a confirmação automática</li>
+            </ol>
           </div>
 
-          {/* Instruções Curtas */}
-          <div className="bg-gray-50 rounded-xl p-3 text-left text-xs text-gray-600 space-y-1">
-            <div className="font-bold text-gray-800 mb-1">Como pagar:</div>
-            <div>1. Abra o aplicativo do seu banco.</div>
-            <div>2. Selecione <strong>Pix &gt; Copia e Cola</strong> (ou aponte a câmera para o QR Code).</div>
-            <div>3. Cole o código copiado e confirme o pagamento.</div>
-            <div className="text-emerald-700 font-semibold pt-1">
-              ✓ A confirmação é automática em poucos segundos assim que o pagamento for concluído!
+          {/* ========================================================= */}
+          {/* 7. AVISO DE APROVAÇÃO AUTOMÁTICA                          */}
+          {/* ========================================================= */}
+          <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-3 flex items-center gap-2.5 text-left text-xs text-emerald-900">
+            <Zap className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="font-semibold">
+              Identificação automática em até 1 minuto após o pagamento.
             </div>
           </div>
 
-          {/* Botões de Ação */}
-          <div className="space-y-2 pt-2">
+          {/* ========================================================= */}
+          {/* 8. IDENTIFICADOR DO PEDIDO COM CLIENTE, ITENS E ENDEREÇO  */}
+          {/* ========================================================= */}
+          <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-left text-xs space-y-2.5 shadow-2xs">
+            <div className="font-black text-gray-800 uppercase tracking-wider text-[11px] pb-1 border-b border-gray-100 flex items-center justify-between">
+              <span>Dados do Pedido</span>
+              <span className="text-gray-400 font-mono">#{activeOrder.orderId}</span>
+            </div>
+
+            {/* Cliente */}
+            {activeOrder.customer && (
+              <div className="flex items-start gap-2 text-gray-700">
+                <User className="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-gray-900">{activeOrder.customer.fullName}</span>
+                  {activeOrder.customer.phone && (
+                    <span className="text-gray-500 text-[11px] block">{activeOrder.customer.phone}</span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Endereço */}
+            {activeOrder.address && (
+              <div className="flex items-start gap-2 text-gray-700">
+                <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
+                <div className="text-[11px]">
+                  <span className="font-semibold text-gray-900">
+                    {activeOrder.address.street}, {activeOrder.address.number}
+                    {activeOrder.address.complement ? ` (${activeOrder.address.complement})` : ''}
+                  </span>
+                  <span className="text-gray-500 block">
+                    {activeOrder.address.neighborhood} - {activeOrder.address.city}/{activeOrder.address.state}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Itens */}
+            {Array.isArray(activeOrder.items) && activeOrder.items.length > 0 && (
+              <div className="pt-1.5 border-t border-gray-100 space-y-1">
+                <div className="text-[11px] font-bold text-gray-500 flex items-center gap-1">
+                  <ShoppingBag className="w-3 h-3" />
+                  <span>Itens solicitados:</span>
+                </div>
+                <div className="space-y-1">
+                  {activeOrder.items.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-xs text-gray-700">
+                      <span>
+                        <strong className="text-[#D32F2F] font-bold mr-1">{item.quantity}x</strong>
+                        {item.name}
+                      </span>
+                      <span className="font-semibold text-gray-900">
+                        {formatCurrency(item.price * item.quantity)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ========================================================= */}
+          {/* 9. TEMPO ESTIMADO DE ENTREGA                              */}
+          {/* ========================================================= */}
+          <div className="bg-gray-50 border border-gray-200/70 rounded-xl p-3 flex items-center justify-between text-xs text-gray-700">
+            <span className="flex items-center gap-1.5 font-medium">
+              <Clock className="w-3.5 h-3.5 text-gray-500" />
+              <span>Tempo estimado de entrega:</span>
+            </span>
+            <span className="font-extrabold text-gray-900">
+              35 a 50 minutos após confirmação
+            </span>
+          </div>
+
+          {/* ========================================================= */}
+          {/* 10. SUPORTE / DÚVIDAS & AÇÕES                             */}
+          {/* ========================================================= */}
+          <div className="space-y-2 pt-1">
             <button
               onClick={manualCheck}
               disabled={isChecking}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white py-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-70 shadow-sm"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white py-3 rounded-xl text-xs sm:text-sm font-extrabold flex items-center justify-center gap-2 transition cursor-pointer disabled:opacity-70 shadow-sm"
             >
               <RefreshCw className={`w-4 h-4 ${isChecking ? 'animate-spin' : ''}`} />
-              <span>{isChecking ? 'Verificando pagamento...' : 'Já realizei o pagamento (Verificar)'}</span>
+              <span>{isChecking ? 'Verificando pagamento no banco...' : 'Já realizei o pagamento (Verificar)'}</span>
             </button>
 
-            {siteConfig.phone && (
-              <button
-                onClick={openWhatsApp}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+            {/* Suporte WhatsApp: se configurado, exibe botão; se não, oculta de forma elegante */}
+            {whatsappUrl && (
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"
               >
                 <MessageSquare className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Avisar a Pizzaria no WhatsApp</span>
-              </button>
+                <span>Falar com a pizzaria no WhatsApp</span>
+              </a>
             )}
+
+            <p className="text-[11px] text-gray-400">
+              Atendimento todos os dias das 18h às 23h30
+            </p>
 
             <button
               onClick={() => setActiveOrder(null)}
@@ -270,10 +393,10 @@ export default function PixScreen() {
             </button>
           </div>
 
-          {/* Item 5: Remover qualquer menção ao SigiloPay */}
+          {/* Microfeedback de segurança final */}
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-gray-400 pt-1">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Pagamento seguro via Pix com criptografia de ponta a ponta</span>
+            <span>Ambiente seguro com criptografia de ponta a ponta</span>
           </div>
         </div>
       </div>

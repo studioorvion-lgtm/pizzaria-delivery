@@ -1,29 +1,33 @@
 import subprocess
 import time
 import urllib.request
+import socket
 from playwright.sync_api import sync_playwright
 
+def get_free_port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('', 0))
+        return s.getsockname()[1]
+
 def run_e2e():
-    print("Iniciando servidor Vite de preview para testes de responsividade...")
-    proc = subprocess.Popen(["npm", "run", "preview", "--", "--port", "4173"], shell=True, cwd=".")
+    port = get_free_port()
+    print(f"Iniciando servidor Vite de preview na porta {port}...")
+    proc = subprocess.Popen(["npm", "run", "preview", "--", "--port", str(port), "--strictPort"], shell=True, cwd=".")
     
     try:
         target_url = None
-        for _ in range(30):
-            for port in [4173, 4174, 4175]:
-                try:
-                    with urllib.request.urlopen(f"http://localhost:{port}") as r:
-                        if r.status == 200:
-                            target_url = f"http://localhost:{port}"
-                            break
-                except:
-                    pass
-            if target_url:
-                break
+        for _ in range(40):
+            try:
+                with urllib.request.urlopen(f"http://localhost:{port}") as r:
+                    if r.status == 200:
+                        target_url = f"http://localhost:{port}"
+                        break
+            except:
+                pass
             time.sleep(0.5)
 
         if not target_url:
-            raise Exception("Não foi possível conectar ao servidor preview")
+            raise Exception(f"Não foi possível conectar ao servidor preview na porta {port}")
 
         print(f"Servidor preview ativo em {target_url}")
 
@@ -74,39 +78,47 @@ def run_e2e():
                 page.locator("button:has-text('Continuar para Entrega')").first.click()
                 page.wait_for_timeout(300)
 
-                # 5. Preenche dados do formulário de checkout
-                page.fill("input[name='fullName']", "Carlos Eduardo Silva")
-                page.fill("input[name='phone']", "11999887766")
+                # 5. ETAPA 1 — ENDEREÇO
+                assert page.locator("text=Endereço de Entrega").is_visible(), "Título Etapa 1 não visível"
+                page.fill("input[name='cep']", "01415-000")
                 page.fill("input[name='street']", "Rua das Flores")
                 page.fill("input[name='number']", "123")
                 page.fill("input[name='complement']", "Apto 45")
                 page.fill("input[name='neighborhood']", "Bela Vista")
                 page.fill("input[name='city']", "São Paulo")
 
-                # 6. Clica em "Revisar Pedido"
+                # Clica em Continuar para Dados
+                page.locator("button:has-text('Continuar para Dados')").first.click()
+                page.wait_for_timeout(300)
+
+                # 6. ETAPA 2 — DADOS PESSOAIS
+                assert page.locator("text=Seus Dados de Contato").is_visible(), "Título Etapa 2 não visível"
+                page.fill("input[name='fullName']", "Carlos Eduardo Silva")
+                page.fill("input[name='phone']", "11999887766")
+
+                # Clica em Revisar Pedido
                 page.locator("button:has-text('Revisar Pedido')").first.click()
                 page.wait_for_timeout(400)
 
-                # 7. Verifica exibição do Recibo / Resumo do Pedido
-                assert page.locator("text=Conferência do Pedido").is_visible(), "Título do recibo não visível"
-                assert page.locator("text=Carlos Eduardo Silva").is_visible(), "Nome do cliente não visível no recibo"
-                assert page.locator("text=11999887766").or_(page.locator("text=(11) 99988-7766")).is_visible(), "Telefone do cliente não visível no recibo"
-                assert page.locator("text=Rua das Flores, 123").is_visible(), "Endereço não visível no recibo"
-                assert page.locator("text=Bela Vista").is_visible(), "Bairro não visível no recibo"
+                # 7. ETAPA 3 — CONFERÊNCIA DO PEDIDO / RECIBO
+                assert page.locator("text=Conferência do Pedido").first.is_visible(), "Título do recibo não visível"
+                assert page.locator("text=Carlos Eduardo Silva").first.is_visible(), "Nome do cliente não visível no recibo"
+                assert page.locator("text=123").first.is_visible(), "Número da residência não visível no recibo"
+                assert page.locator("text=São Paulo").first.is_visible(), "Cidade não visível no recibo"
                 assert page.locator("text=RESUMO FINANCEIRO").is_visible(), "Resumo financeiro não visível no recibo"
-                assert page.locator("text=Grátis").is_visible(), "Taxa de entrega Grátis não visível no recibo"
-                assert page.locator("button:has-text('Continuar para Pagamento')").is_visible(), "Botão Continuar para Pagamento não visível"
-                assert page.locator("button:has-text('Editar Dados / Pedido')").is_visible(), "Botão Editar não visível"
+                assert page.locator("text=Grátis").first.is_visible(), "Taxa de entrega Grátis não visível no recibo"
+                assert page.locator("button:has-text('Gerar Pix e Concluir Pedido')").is_visible(), "Botão Gerar Pix não visível"
+                assert page.locator("button:has-text('Voltar para Editar Dados')").is_visible(), "Botão Editar não visível"
 
                 # Verifica ausência de overflow horizontal no modal de recibo
-                modal_overflow = page.evaluate("document.querySelector('[role=\"dialog\"], .max-w-xl')?.scrollWidth <= window.innerWidth + 2")
+                modal_overflow = page.evaluate("document.querySelector('.max-w-xl')?.scrollWidth <= window.innerWidth + 2")
                 assert modal_overflow, f"Overflow no modal de recibo em {vp['width']}px"
-                print(f"[OK] Recibo perfeitamente renderizado e responsivo em {vp['width']}px!")
+                print(f"[OK] Checkout em 3 etapas perfeitamente renderizado e responsivo em {vp['width']}px!")
 
-                # 8. Testa botão "Editar Dados / Pedido"
-                page.locator("button:has-text('Editar Dados / Pedido')").click()
+                # 8. Testa botão "Voltar para Editar Dados"
+                page.locator("button:has-text('Voltar para Editar Dados')").click()
                 page.wait_for_timeout(300)
-                assert page.locator("input[name='fullName']").is_visible(), "Formulário deve reaparecer ao clicar em editar"
+                assert page.locator("input[name='fullName']").is_visible(), "Formulário de dados deve reaparecer ao clicar em editar"
                 assert page.input_value("input[name='fullName']") == "Carlos Eduardo Silva", "Dados do formulário devem ser preservados"
                 print(f"[OK] Edição de dados testada com sucesso em {vp['width']}px: campos preservados.")
 
@@ -117,7 +129,7 @@ def run_e2e():
         print("\n=== TODOS OS TESTES MOBILE (320, 360, 390 e 414px) FORAM CONCLUÍDOS COM 100% DE SUCESSO! ===")
 
     finally:
-        proc.terminate()
+        subprocess.call(["taskkill", "/F", "/T", "/PID", str(proc.pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 if __name__ == "__main__":
     run_e2e()

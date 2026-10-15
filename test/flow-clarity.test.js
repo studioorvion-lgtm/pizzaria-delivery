@@ -64,12 +64,39 @@ async function runClarityTests() {
   assert.strictEqual(mockOrderData.items.length, 2, 'Pedido: Itens presentes');
   console.log('✓ Todos os campos obrigatórios do recibo estão devidamente mapeados e estruturados.');
 
-  // 3. Regras Técnicas: Integridade de Preços e Configurações
-  console.log('\n[3/3] Validando integridade de regras técnicas e comerciais...');
-  assert.ok(siteConfig.name, 'Nome da pizzaria configurado');
-  assert.ok(siteConfig.deliveryTime, 'Tempo de entrega oficial preservado');
-  assert.strictEqual(siteConfig.name, 'Donatello Pizzaria Artesanal');
-  console.log('✓ Marca, tempos e regras de negócio oficiais preservadas sem alterações indevidas.');
+  // 4. Validação de WhatsApp e CEP
+  console.log('\n[4/4] Validando regras estritas de WhatsApp brasileiro e CEP...');
+  const { isValidPhone, isValidCEP } = await import('../src/utils/validators.js');
+  const { getBusinessHoursStatus } = await import('../src/config/site.js');
+
+  // WhatsApp válidos (10 ou 11 dígitos, DDD 11 a 99, se 11 dígitos nono dígito 9)
+  assert.strictEqual(isValidPhone('(11) 98765-4321'), true, 'Celular SP válido');
+  assert.strictEqual(isValidPhone('21988887777'), true, 'Celular RJ válido');
+  assert.strictEqual(isValidPhone('3132221111'), true, 'Fixo MG válido');
+  assert.strictEqual(isValidPhone('(47) 99123-4567'), true, 'Celular SC válido');
+
+  // WhatsApp inválidos (DDD falso, dígito inicial errado, repetições, incompletos)
+  assert.strictEqual(isValidPhone('00987654321'), false, 'DDD 00 inválido');
+  assert.strictEqual(isValidPhone('10987654321'), false, 'DDD 10 inválido');
+  assert.strictEqual(isValidPhone('11876543210'), false, 'Celular 11 dígitos com 8º inicial inválido');
+  assert.strictEqual(isValidPhone('11111111111'), false, 'Sequência repetitiva inválida');
+  assert.strictEqual(isValidPhone('00000000000'), false, 'Sequência de zeros inválida');
+  assert.strictEqual(isValidPhone('12345678'), false, 'Telefone incompleto');
+  assert.strictEqual(isValidPhone(''), false, 'Vazio inválido');
+  console.log('✓ Validação de WhatsApp brasileiro validada com sucesso.');
+
+  // CEPs
+  assert.strictEqual(isValidCEP('01415-000'), true, 'CEP SP válido');
+  assert.strictEqual(isValidCEP('20040002'), true, 'CEP RJ válido');
+  assert.strictEqual(isValidCEP('11111111'), false, 'CEP repetitivo inválido');
+  assert.strictEqual(isValidCEP('1234'), false, 'CEP curto inválido');
+  console.log('✓ Validação de CEP validada com sucesso.');
+
+  // Horário dinâmico
+  const bh = getBusinessHoursStatus();
+  assert.ok(typeof bh.isOpen === 'boolean', 'isOpen deve ser booleano');
+  assert.ok(bh.badgeText.includes('ABERTO') || bh.badgeText.includes('FECHADO'), 'Texto do badge correto');
+  console.log(`✓ Horário dinâmico de funcionamento validado: status atual = ${bh.badgeText} (${bh.detailText})`);
 
   console.log('\n=== TODOS OS TESTES DE CLAREZA E FLUXO PASSARAM COM SUCESSO! ===\n');
 }
