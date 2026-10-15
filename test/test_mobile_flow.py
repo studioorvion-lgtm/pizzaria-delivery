@@ -2,6 +2,7 @@ import subprocess
 import time
 import urllib.request
 import socket
+import json
 from playwright.sync_api import sync_playwright
 
 def get_free_port():
@@ -52,6 +53,37 @@ def run_e2e():
                     geolocation={"latitude": -23.5505, "longitude": -46.6333}
                 )
                 page = context.new_page()
+
+                def handle_checkout(route):
+                    route.fulfill(
+                        status=200,
+                        content_type="application/json",
+                        body=json.dumps({
+                            "success": True,
+                            "orderId": "DON-998877",
+                            "transactionId": "mock_tx_123",
+                            "status": "PENDING",
+                            "pix": {
+                                "code": "00020126580014br.gov.bcb.pix0136123e4567-e89b-12d3-a456-4266141740005204000053039865802BR5925Donatello Pizzaria6009Sao Paulo62070503***6304ABCD",
+                                "qrCodeImage": "https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=mockpix"
+                            }
+                        })
+                    )
+
+                def handle_status(route):
+                    route.fulfill(
+                        status=200,
+                        content_type="application/json",
+                        body=json.dumps({
+                            "success": True,
+                            "status": "PENDING",
+                            "isPaid": False
+                        })
+                    )
+
+                page.route("**/api/checkout", handle_checkout)
+                page.route("**/api/status*", handle_status)
+
                 page.goto(target_url, wait_until="networkidle")
 
                 # 1. Verifica Header e ausência de overflow horizontal
@@ -87,8 +119,8 @@ def run_e2e():
                 page.fill("input[name='neighborhood']", "Bela Vista")
                 page.fill("input[name='city']", "São Paulo")
 
-                # Clica em Continuar para Dados
-                page.locator("button:has-text('Continuar para Dados')").first.click()
+                # Clica em Continuar (Etapa 1 -> Etapa 2)
+                page.locator("form button:has-text('Continuar')").click()
                 page.wait_for_timeout(300)
 
                 # 6. ETAPA 2 — DADOS PESSOAIS
@@ -96,31 +128,30 @@ def run_e2e():
                 page.fill("input[name='fullName']", "Carlos Eduardo Silva")
                 page.fill("input[name='phone']", "11999887766")
 
-                # Clica em Revisar Pedido
-                page.locator("button:has-text('Revisar Pedido')").first.click()
-                page.wait_for_timeout(400)
+                # Clica em "Gerar Pix e Ir para Pagamento" (vai DIRETAMENTE para a Etapa 3)
+                page.locator("button:has-text('Gerar Pix e Ir para Pagamento')").first.click()
+                page.wait_for_timeout(600)
 
-                # 7. ETAPA 3 — CONFERÊNCIA DO PEDIDO / RECIBO
-                assert page.locator("text=Conferência do Pedido").first.is_visible(), "Título do recibo não visível"
+                # 7. ETAPA 3 — PAGAMENTO PIX COM RECIBO ACOPLADO NA MESMA TELA
+                assert page.locator("text=Pagamento via Pix").first.is_visible(), "Tela de Pix não visível"
+                assert page.locator("text=Aguardando pagamento").first.is_visible(), "Status aguardando não visível"
+                assert page.locator("text=Recibo do Pedido").first.is_visible(), "Recibo dentro da tela do Pix não visível"
                 assert page.locator("text=Carlos Eduardo Silva").first.is_visible(), "Nome do cliente não visível no recibo"
                 assert page.locator("text=123").first.is_visible(), "Número da residência não visível no recibo"
                 assert page.locator("text=São Paulo").first.is_visible(), "Cidade não visível no recibo"
-                assert page.locator("text=RESUMO FINANCEIRO").is_visible(), "Resumo financeiro não visível no recibo"
-                assert page.locator("text=Grátis").first.is_visible(), "Taxa de entrega Grátis não visível no recibo"
-                assert page.locator("button:has-text('Gerar Pix e Concluir Pedido')").is_visible(), "Botão Gerar Pix não visível"
-                assert page.locator("button:has-text('Voltar para Editar Dados')").is_visible(), "Botão Editar não visível"
+                assert page.locator("text=COPIAR CÓDIGO PIX").or_(page.locator("text=CÓDIGO COPIADO!")).first.is_visible(), "Botão copiar Pix não visível"
+                assert page.locator("text=Corrigir meus dados").is_visible(), "Botão Corrigir meus dados não visível"
 
-                # Verifica ausência de overflow horizontal no modal de recibo
-                modal_overflow = page.evaluate("document.querySelector('.max-w-xl')?.scrollWidth <= window.innerWidth + 2")
-                assert modal_overflow, f"Overflow no modal de recibo em {vp['width']}px"
-                print(f"[OK] Checkout em 3 etapas perfeitamente renderizado e responsivo em {vp['width']}px!")
+                # Verifica ausência de overflow horizontal no modal de Pix + Recibo
+                modal_overflow = page.evaluate("document.querySelector('.max-w-lg')?.scrollWidth <= window.innerWidth + 2")
+                assert modal_overflow, f"Overflow no modal de Pix/Recibo em {vp['width']}px"
+                print(f"[OK] Fluxo de 3 etapas com recibo dentro do Pix perfeitamente renderizado e responsivo em {vp['width']}px!")
 
-                # 8. Testa botão "Voltar para Editar Dados"
-                page.locator("button:has-text('Voltar para Editar Dados')").click()
+                # 8. Testa botão discreto "Corrigir meus dados"
+                page.locator("text=Corrigir meus dados").click()
                 page.wait_for_timeout(300)
-                assert page.locator("input[name='fullName']").is_visible(), "Formulário de dados deve reaparecer ao clicar em editar"
-                assert page.input_value("input[name='fullName']") == "Carlos Eduardo Silva", "Dados do formulário devem ser preservados"
-                print(f"[OK] Edição de dados testada com sucesso em {vp['width']}px: campos preservados.")
+                assert page.locator("input[name='fullName']").or_(page.locator("text=Endereço de Entrega")).first.is_visible(), "Checkout deve reabrir ao clicar em corrigir"
+                print(f"[OK] 'Corrigir meus dados' testado com sucesso em {vp['width']}px.")
 
                 context.close()
 

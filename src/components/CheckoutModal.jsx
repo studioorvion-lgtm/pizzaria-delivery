@@ -5,14 +5,10 @@ import {
   QrCode,
   Loader2,
   AlertCircle,
-  Receipt,
   ArrowRight,
   ArrowLeft,
-  Edit3,
-  Clock,
   MapPin,
   User,
-  Lock,
   Truck,
   CheckCircle2,
 } from 'lucide-react';
@@ -25,7 +21,6 @@ import {
   isValidPhone,
   isValidCEP,
 } from '../utils/validators';
-import { siteConfig } from '../config/site';
 
 const BRAZILIAN_STATES = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 
@@ -42,19 +37,25 @@ export default function CheckoutModal() {
     clearCart,
   } = useCart();
 
-  // 1 = Endereço, 2 = Seus Dados, 3 = Pagamento / Recibo
+  // Etapa 1 = Endereço, Etapa 2 = Dados
   const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    cpf: '',
-    cep: '',
-    street: '',
-    number: '',
-    complement: '',
-    neighborhood: '',
-    city: '',
-    state: 'SP',
+  const [formData, setFormData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('donatello_checkout_form');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      fullName: '',
+      phone: '',
+      cpf: '',
+      cep: '',
+      street: '',
+      number: '',
+      complement: '',
+      neighborhood: '',
+      city: '',
+      state: 'SP',
+    };
   });
 
   const [errors, setErrors] = useState({});
@@ -73,7 +74,13 @@ export default function CheckoutModal() {
     if (name === 'cep') formatted = formatCEP(value);
     if (name === 'cpf') formatted = formatCPF(value);
 
-    setFormData((prev) => ({ ...prev, [name]: formatted }));
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: formatted };
+      try {
+        localStorage.setItem('donatello_checkout_form', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
 
     if (errors[name]) {
       setErrors((prev) => {
@@ -88,8 +95,14 @@ export default function CheckoutModal() {
     }
   };
 
-  const handleCepLookup = async () => {
-    const rawCep = formData.cep.replace(/\D/g, '');
+  const handleCepLookup = async (cepOverride) => {
+    let rawCep = '';
+    if (typeof cepOverride === 'string') {
+      rawCep = cepOverride.replace(/\D/g, '');
+    } else {
+      rawCep = (formData.cep || '').replace(/\D/g, '');
+    }
+
     if (!rawCep) return;
     if (rawCep.length !== 8) {
       setErrors((prev) => ({ ...prev, cep: 'CEP incompleto. Digite 8 dígitos.' }));
@@ -105,13 +118,20 @@ export default function CheckoutModal() {
         setCepNotice({ type: 'error', message: 'CEP não encontrado. Confira e tente novamente.' });
         setErrors((prev) => ({ ...prev, cep: 'CEP não encontrado. Confira e tente novamente.' }));
       } else {
-        setFormData((prev) => ({
-          ...prev,
-          street: data.logradouro || prev.street,
-          neighborhood: data.bairro || prev.neighborhood,
-          city: data.localidade || prev.city,
-          state: data.uf || prev.state,
-        }));
+        setFormData((prev) => {
+          const updated = {
+            ...prev,
+            street: data.logradouro || prev.street,
+            neighborhood: data.bairro || prev.neighborhood,
+            city: data.localidade || prev.city,
+            state: data.uf || prev.state,
+          };
+          try {
+            localStorage.setItem('donatello_checkout_form', JSON.stringify(updated));
+          } catch {}
+          return updated;
+        });
+
         setCepNotice({ type: 'success', message: 'Endereço preenchido automaticamente!' });
         setErrors((prev) => {
           const copy = { ...prev };
@@ -120,7 +140,6 @@ export default function CheckoutModal() {
         });
       }
     } catch {
-      // Falha na API: permite preenchimento manual sem travar
       setCepNotice({
         type: 'error',
         message: 'Não foi possível consultar o CEP automaticamente. Preencha seu endereço abaixo.',
@@ -170,15 +189,10 @@ export default function CheckoutModal() {
     setStep(2);
   };
 
-  const handleAdvanceToStep3 = (e) => {
+  const handleGeneratePix = async (e) => {
     if (e) e.preventDefault();
     setSubmitError(null);
     if (!validateStep2()) return;
-    setStep(3);
-  };
-
-  const handleConfirmPayment = async () => {
-    setSubmitError(null);
 
     try {
       setIsSubmitting(true);
@@ -216,15 +230,15 @@ export default function CheckoutModal() {
         throw new Error(data.error || 'Erro ao processar pedido no gateway de pagamento.');
       }
 
-      // Sucesso
+      // Sucesso: fecha o checkout e vai DIRETAMENTE para a Etapa 3 (Pagamento Pix)
       setIsCheckoutOpen(false);
       clearCart();
-      setStep(1);
       setActiveOrder({
         ...data,
         customer: payload.customer,
         address: payload.address,
         items,
+        total: subtotal,
       });
     } catch (err) {
       setSubmitError(err.message || 'Falha de comunicação ao gerar o Pix. Tente novamente.');
@@ -239,21 +253,19 @@ export default function CheckoutModal() {
         {/* Header Modal */}
         <div className="p-4 sm:p-5 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-20">
           <div className="flex items-center gap-2">
-            {step > 1 && (
+            {step === 2 && (
               <button
                 type="button"
-                onClick={() => setStep((s) => s - 1)}
+                onClick={() => setStep(1)}
                 className="p-1 rounded-full text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition mr-1 cursor-pointer"
-                title="Voltar à etapa anterior"
+                title="Voltar para Endereço"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
             )}
             <div>
               <h3 className="font-extrabold text-gray-900 text-lg">
-                {step === 1 && 'Endereço de Entrega'}
-                {step === 2 && 'Seus Dados de Contato'}
-                {step === 3 && 'Conferência do Pedido'}
+                {step === 1 ? 'Endereço de Entrega' : 'Seus Dados de Contato'}
               </h3>
               <div className="flex items-center gap-1.5 text-xs text-emerald-700 font-semibold mt-0.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
@@ -265,7 +277,6 @@ export default function CheckoutModal() {
           <button
             onClick={() => {
               setIsCheckoutOpen(false);
-              setStep(1);
             }}
             className="p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition cursor-pointer"
             aria-label="Fechar"
@@ -274,9 +285,10 @@ export default function CheckoutModal() {
           </button>
         </div>
 
-        {/* Indicador Visual de Progresso em 3 Etapas */}
+        {/* Indicador Visual de Progresso: [1 Endereço] → [2 Dados] → [3 Pagamento] */}
         <div className="bg-gray-50 border-b border-gray-100 px-4 py-2.5">
-          <div className="flex items-center justify-between max-w-md mx-auto text-xs font-bold">
+          <div className="flex items-center justify-between max-w-xs mx-auto text-xs font-bold">
+            {/* 1. Endereço */}
             <button
               type="button"
               onClick={() => setStep(1)}
@@ -302,59 +314,33 @@ export default function CheckoutModal() {
               }`}
             />
 
-            <button
-              type="button"
-              onClick={() => {
-                if (validateStep1()) setStep(2);
-              }}
-              className={`flex items-center gap-1.5 transition cursor-pointer ${
-                step === 2
-                  ? 'text-[#D32F2F]'
-                  : step > 2
-                  ? 'text-emerald-700'
-                  : 'text-gray-400'
+            {/* 2. Dados */}
+            <div
+              className={`flex items-center gap-1.5 transition ${
+                step === 2 ? 'text-[#D32F2F]' : 'text-gray-400'
               }`}
             >
               <span
                 className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
                   step === 2
                     ? 'bg-[#D32F2F] text-white'
-                    : step > 2
-                    ? 'bg-emerald-600 text-white'
                     : 'bg-gray-200 text-gray-500'
                 }`}
               >
-                {step > 2 ? '✓' : '2'}
+                2
               </span>
-              <span>Seus Dados</span>
-            </button>
+              <span>Dados</span>
+            </div>
 
-            <div
-              className={`flex-1 h-0.5 mx-2 transition-colors ${
-                step === 3 ? 'bg-emerald-500' : 'bg-gray-200'
-              }`}
-            />
+            <div className="flex-1 h-0.5 mx-2 bg-gray-200" />
 
-            <button
-              type="button"
-              onClick={() => {
-                if (validateStep1() && validateStep2()) setStep(3);
-              }}
-              className={`flex items-center gap-1.5 transition cursor-pointer ${
-                step === 3 ? 'text-[#D32F2F]' : 'text-gray-400'
-              }`}
-            >
-              <span
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
-                  step === 3
-                    ? 'bg-[#D32F2F] text-white'
-                    : 'bg-gray-200 text-gray-500'
-                }`}
-              >
+            {/* 3. Pagamento */}
+            <div className="flex items-center gap-1.5 text-gray-400">
+              <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black bg-gray-200 text-gray-500">
                 3
               </span>
               <span>Pagamento</span>
-            </button>
+            </div>
           </div>
         </div>
 
@@ -544,13 +530,13 @@ export default function CheckoutModal() {
               </span>
             </div>
 
-            {/* Ação: Continuar para Dados */}
+            {/* Ação: Continuar */}
             <div className="pt-2">
               <button
                 type="submit"
                 className="w-full bg-[#D32F2F] hover:bg-[#B71C1C] text-white py-3.5 px-4 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-95"
               >
-                <span>Continuar para Dados</span>
+                <span>Continuar</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -561,7 +547,7 @@ export default function CheckoutModal() {
         {/* ETAPA 2 — DADOS PESSOAIS                                  */}
         {/* ========================================================= */}
         {step === 2 && (
-          <form onSubmit={handleAdvanceToStep3} className="p-4 sm:p-6 space-y-4">
+          <form onSubmit={handleGeneratePix} className="p-4 sm:p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-black uppercase text-gray-700 tracking-wider flex items-center gap-1.5">
                 <User className="w-4 h-4 text-[#D32F2F]" />
@@ -646,11 +632,12 @@ export default function CheckoutModal() {
               </button>
             </div>
 
-            {/* Botões: Voltar e Avançar para Revisão */}
+            {/* Botões: Voltar e Gerar Pix e Ir para Pagamento */}
             <div className="flex gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setStep(1)}
+                disabled={isSubmitting}
                 className="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <ArrowLeft className="w-4 h-4" />
@@ -659,221 +646,23 @@ export default function CheckoutModal() {
 
               <button
                 type="submit"
-                className="flex-1 bg-[#D32F2F] hover:bg-[#B71C1C] text-white py-3.5 px-4 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-95"
-              >
-                <span>Revisar Pedido</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </form>
-        )}
-
-        {/* ========================================================= */}
-        {/* ETAPA 3 — PAGAMENTO / RECIBO                              */}
-        {/* ========================================================= */}
-        {step === 3 && (
-          <div className="p-4 sm:p-6 space-y-4">
-            {/* Bloco Visual de Recibo */}
-            <div className="bg-gradient-to-b from-gray-50 to-white border-2 border-gray-200 rounded-2xl p-4 sm:p-5 shadow-xs text-xs sm:text-sm text-gray-800 space-y-4 font-sans relative overflow-hidden">
-              {/* Topo do Recibo */}
-              <div className="text-center pb-3 border-b-2 border-dashed border-gray-300">
-                <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase text-[#006437] tracking-wider mb-0.5">
-                  <Receipt className="w-4 h-4 text-[#006437]" />
-                  <span>{siteConfig.name}</span>
-                </div>
-                <h4 className="font-extrabold text-sm sm:text-base text-gray-900 tracking-tight">
-                  Conferência do Pedido
-                </h4>
-                <p className="text-[11px] text-gray-500 mt-0.5">
-                  Revise todos os dados antes de prosseguir para o pagamento
-                </p>
-              </div>
-
-              {/* Seção 1: CLIENTE */}
-              <div className="space-y-1.5 pb-3 border-b border-gray-200">
-                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <User className="w-3.5 h-3.5 text-gray-400" />
-                    <span>CLIENTE</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setStep(2)}
-                    className="text-[#D32F2F] font-bold lowercase hover:underline cursor-pointer"
-                  >
-                    editar
-                  </button>
-                </div>
-                <div className="flex justify-between items-center text-xs sm:text-sm">
-                  <span className="text-gray-500 font-medium">Nome:</span>
-                  <span className="font-bold text-gray-900">{formData.fullName}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs sm:text-sm">
-                  <span className="text-gray-500 font-medium">WhatsApp / Telefone:</span>
-                  <span className="font-bold text-gray-900">{formData.phone}</span>
-                </div>
-                {formData.cpf && (
-                  <div className="flex justify-between items-center text-xs sm:text-sm">
-                    <span className="text-gray-500 font-medium">CPF:</span>
-                    <span className="font-bold text-gray-700">{formData.cpf}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Seção 2: ENTREGA */}
-              <div className="space-y-1.5 pb-3 border-b border-gray-200">
-                <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-red-500" />
-                    <span>ENTREGA</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="text-[#D32F2F] font-bold lowercase hover:underline cursor-pointer"
-                  >
-                    editar
-                  </button>
-                </div>
-                <div className="text-xs sm:text-sm text-gray-800 space-y-1">
-                  <div className="flex justify-between items-start">
-                    <span className="text-gray-500 font-medium">Endereço:</span>
-                    <span className="font-bold text-gray-900 text-right">
-                      {formData.street}, {formData.number}
-                      {formData.complement ? ` (${formData.complement})` : ''}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 font-medium">Bairro:</span>
-                    <span className="font-semibold text-gray-900">{formData.neighborhood}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 font-medium">Cidade/UF:</span>
-                    <span className="font-semibold text-gray-900">{formData.city}/{formData.state}</span>
-                  </div>
-                  {formData.cep && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-500 font-medium">CEP:</span>
-                      <span className="font-semibold text-gray-900">{formData.cep}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 flex items-center justify-between text-xs text-emerald-800 mt-2 font-medium">
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Previsão de entrega:</span>
-                  </span>
-                  <span className="font-bold text-emerald-900">{siteConfig.deliveryTime}</span>
-                </div>
-              </div>
-
-              {/* Seção 3: PEDIDO */}
-              <div className="space-y-2 pb-3 border-b border-gray-200">
-                <div className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-gray-500">
-                  <Receipt className="w-3.5 h-3.5 text-gray-400" />
-                  <span>ITENS DO PEDIDO</span>
-                </div>
-                <div className="divide-y divide-gray-100">
-                  {items.map((item) => (
-                    <div key={item.id} className="py-2 flex items-start justify-between gap-3 text-xs sm:text-sm">
-                      <div className="flex-1 min-w-0">
-                        <div className="font-bold text-gray-900">
-                          <span className="text-[#D32F2F] font-extrabold mr-1.5">{item.quantity}x</span>
-                          {item.name}
-                        </div>
-                        {item.description && (
-                          <div className="text-[11px] text-gray-500 uppercase tracking-wide mt-0.5">
-                            {item.description}
-                          </div>
-                        )}
-                      </div>
-                      <div className="font-extrabold text-gray-900 shrink-0">
-                        {formatCurrency(item.price * item.quantity)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Seção 4: RESUMO FINANCEIRO */}
-              <div className="space-y-1.5 pt-1">
-                <div className="text-[11px] font-black uppercase tracking-wider text-gray-500">
-                  RESUMO FINANCEIRO
-                </div>
-                <div className="flex justify-between items-center text-xs sm:text-sm">
-                  <span className="text-gray-500">Subtotal dos Itens:</span>
-                  <span className="font-medium text-gray-800">{formatCurrency(subtotal)}</span>
-                </div>
-                <div className="flex justify-between items-center text-xs sm:text-sm">
-                  <span className="text-gray-500">Taxa de Entrega:</span>
-                  <span className="font-bold text-emerald-600 uppercase">Grátis</span>
-                </div>
-                <div className="flex justify-between items-center text-xs sm:text-sm">
-                  <span className="text-gray-500">Desconto:</span>
-                  <span className="font-medium text-gray-400">R$ 0,00</span>
-                </div>
-                <div className="flex justify-between items-center pt-2.5 border-t border-gray-300 text-sm sm:text-base">
-                  <span className="font-bold text-gray-900">Total Final:</span>
-                  <span className="font-black text-[#D32F2F] text-lg sm:text-xl">
-                    {formatCurrency(subtotal)}
-                  </span>
-                </div>
-                <div className="text-[11px] text-gray-500 flex items-center justify-between pt-1">
-                  <span>Forma de pagamento:</span>
-                  <span className="font-bold text-gray-800 flex items-center gap-1">
-                    <QrCode className="w-3.5 h-3.5 text-[#D32F2F]" />
-                    <span>Pix Instantâneo</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Microfeedbacks de Confiança */}
-            <div className="bg-emerald-50/70 border border-emerald-100 rounded-xl p-3 space-y-1 text-xs text-emerald-900">
-              <div className="flex items-center gap-1.5 font-bold">
-                <Lock className="w-3.5 h-3.5 text-emerald-700" />
-                <span>Ambiente Seguro • Sem taxas ocultas</span>
-              </div>
-              <p className="text-[11px] text-emerald-800">
-                • Seu pedido começa a ser preparado assim que o Pix for confirmado.
-              </p>
-              <p className="text-[11px] text-emerald-800">
-                • Entrega própria e rastreada direto até o seu endereço.
-              </p>
-            </div>
-
-            {/* Botões de Ação do Recibo */}
-            <div className="space-y-2 pt-1">
-              <button
-                type="button"
-                onClick={handleConfirmPayment}
                 disabled={isSubmitting}
-                className="w-full bg-[#D32F2F] hover:bg-[#B71C1C] active:bg-[#9a1414] text-white py-3.5 px-4 rounded-xl font-extrabold text-sm tracking-wide flex items-center justify-center gap-2 shadow-md transition disabled:opacity-70 cursor-pointer active:scale-95"
+                className="flex-1 bg-[#D32F2F] hover:bg-[#B71C1C] active:bg-[#9a1414] text-white py-3.5 px-4 rounded-xl font-extrabold text-sm tracking-wide flex items-center justify-center gap-2 shadow-md transition disabled:opacity-70 cursor-pointer active:scale-95"
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Gerando Cobrança Pix...</span>
+                    <span>Gerando Pix...</span>
                   </>
                 ) : (
                   <>
                     <QrCode className="w-4 h-4" />
-                    <span>Gerar Pix e Concluir Pedido • {formatCurrency(subtotal)}</span>
+                    <span>Gerar Pix e Ir para Pagamento • {formatCurrency(subtotal)}</span>
                   </>
                 )}
               </button>
-
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                disabled={isSubmitting}
-                className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
-              >
-                <Edit3 className="w-3.5 h-3.5" />
-                <span>Voltar para Editar Dados</span>
-              </button>
             </div>
-          </div>
+          </form>
         )}
       </div>
     </div>

@@ -13,6 +13,8 @@ import {
   User,
   ShoppingBag,
   Zap,
+  Receipt,
+  Edit3,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../utils/validators';
@@ -121,14 +123,52 @@ export default function PixScreen() {
     }
   };
 
+  const handleCorrectData = () => {
+    setIsCheckoutOpen(true);
+    setActiveOrder(null);
+  };
+
   const whatsappMsg = `Olá, ${siteConfig.name}! Gostaria de tirar uma dúvida sobre o meu pedido #${activeOrder.orderId} no valor de ${formatCurrency(activeOrder.total)}.`;
   const whatsappUrl = siteConfig.getWhatsAppLink(whatsappMsg);
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 animate-fade-in">
       <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl border border-gray-100 flex flex-col relative max-h-[95vh] overflow-y-auto">
+        {/* Indicador Visual de Progresso: [1 Endereço] → [2 Dados] → [3 Pagamento] */}
+        <div className="bg-gray-50 border-b border-gray-100 px-4 py-2.5">
+          <div className="flex items-center justify-between max-w-xs mx-auto text-xs font-bold">
+            {/* 1. Endereço */}
+            <div className="flex items-center gap-1.5 text-emerald-700">
+              <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black bg-emerald-600 text-white">
+                ✓
+              </span>
+              <span>Endereço</span>
+            </div>
+
+            <div className="flex-1 h-0.5 mx-2 bg-emerald-500" />
+
+            {/* 2. Dados */}
+            <div className="flex items-center gap-1.5 text-emerald-700">
+              <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black bg-emerald-600 text-white">
+                ✓
+              </span>
+              <span>Dados</span>
+            </div>
+
+            <div className="flex-1 h-0.5 mx-2 bg-emerald-500" />
+
+            {/* 3. Pagamento (Ativo) */}
+            <div className="flex items-center gap-1.5 text-[#D32F2F]">
+              <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black bg-[#D32F2F] text-white">
+                3
+              </span>
+              <span>Pagamento</span>
+            </div>
+          </div>
+        </div>
+
         {/* ========================================================= */}
-        {/* 1. RESUMO CLARO DO PEDIDO NO TOPO                         */}
+        {/* 1. DONATELLO PIZZARIA ARTESANAL & 2. STATUS DO PEDIDO     */}
         {/* ========================================================= */}
         <div className="bg-gradient-to-r from-red-600 to-[#D32F2F] text-white p-4 sm:p-5 text-center relative">
           <button
@@ -139,18 +179,20 @@ export default function PixScreen() {
             <X className="w-5 h-5" />
           </button>
 
-          <div className="w-11 h-11 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-2 backdrop-blur-xs">
-            <QrCode className="w-6 h-6 text-white" />
+          <div className="inline-flex items-center gap-1.5 text-xs font-black uppercase text-red-100 tracking-wider mb-1">
+            <QrCode className="w-4 h-4 text-white" />
+            <span>{siteConfig.name}</span>
           </div>
 
           <h3 className="font-extrabold text-lg sm:text-xl text-white tracking-tight">
             Pagamento via Pix
           </h3>
-          <div className="flex items-center justify-center gap-2 mt-1 text-xs">
+
+          <div className="flex items-center justify-center gap-2 mt-1.5 text-xs">
             <span>Pedido <strong className="font-mono">#{activeOrder.orderId}</strong></span>
             <span className="text-white/40">•</span>
             <span className="bg-amber-400 text-gray-900 px-2 py-0.5 rounded-full font-extrabold text-[11px] shadow-2xs">
-              Aguardando Pagamento
+              Aguardando pagamento
             </span>
           </div>
         </div>
@@ -165,7 +207,7 @@ export default function PixScreen() {
           )}
 
           {/* ========================================================= */}
-          {/* 2. VALOR TOTAL EM DESTAQUE GRANDE E LEGÍVEL               */}
+          {/* 3. VALOR TOTAL EM DESTAQUE                                */}
           {/* ========================================================= */}
           <div className="bg-red-50/50 border border-red-100 rounded-xl py-3 px-4">
             <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
@@ -175,12 +217,12 @@ export default function PixScreen() {
               {formatCurrency(activeOrder.total)}
             </span>
             <span className="block text-[11px] text-gray-500 mt-0.5">
-              Entrega Grátis inclusa
+              Taxa de entrega: <strong className="text-emerald-600 uppercase">Grátis</strong>
             </span>
           </div>
 
           {/* ========================================================= */}
-          {/* 3. QR CODE CENTRALIZADO COM BORDA SUAVE E FUNDO BRANCO    */}
+          {/* 4. QR CODE CENTRALIZADO COM BORDA SUAVE E FUNDO BRANCO    */}
           {/* ========================================================= */}
           <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 inline-block mx-auto max-w-xs shadow-inner">
             {qrCodeImage ? (
@@ -201,7 +243,7 @@ export default function PixScreen() {
           </div>
 
           {/* ========================================================= */}
-          {/* 4. CÓDIGO COPIA E COLA & 5. BOTÃO GRANDE 'COPIAR PIX'     */}
+          {/* 5. CÓDIGO PIX COPIA E COLA & 6. BOTÃO 'COPIAR CÓDIGO PIX' */}
           {/* ========================================================= */}
           {pixCode ? (
             <div className="space-y-2 text-left">
@@ -255,108 +297,157 @@ export default function PixScreen() {
           )}
 
           {/* ========================================================= */}
-          {/* 6. INSTRUÇÃO SIMPLES EM PASSOS NUMERADOS                  */}
+          {/* 7. INSTRUÇÕES 'COMO PAGAR'                                */}
           {/* ========================================================= */}
           <div className="bg-gray-50 border border-gray-200/70 rounded-xl p-3.5 text-left text-xs text-gray-700 space-y-1.5">
             <div className="font-extrabold text-gray-900 mb-1 flex items-center gap-1.5">
-              <span>Como pagar com Pix:</span>
+              <span>Como pagar:</span>
             </div>
             <ol className="list-decimal list-inside space-y-1 text-gray-600 font-medium">
-              <li>Abra o aplicativo do seu banco</li>
+              <li>Abra o app do seu banco</li>
               <li>Escolha pagar via Pix</li>
               <li>Selecione Copia e Cola ou aponte a câmera para o QR Code</li>
-              <li>Cole o código e confirme o pagamento</li>
+              <li>Cole o código e confirme</li>
               <li>Retorne a esta tela para acompanhar a confirmação automática</li>
             </ol>
-          </div>
-
-          {/* ========================================================= */}
-          {/* 7. AVISO DE APROVAÇÃO AUTOMÁTICA                          */}
-          {/* ========================================================= */}
-          <div className="bg-emerald-50 border border-emerald-200/80 rounded-xl p-3 flex items-center gap-2.5 text-left text-xs text-emerald-900">
-            <Zap className="w-4 h-4 text-emerald-600 shrink-0" />
-            <div className="font-semibold">
-              Identificação automática em até 1 minuto após o pagamento.
+            <div className="pt-1.5 flex items-center gap-1.5 text-emerald-800 font-semibold text-[11px]">
+              <Zap className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>Identificação automática em até 1 minuto após o pagamento.</span>
             </div>
           </div>
 
           {/* ========================================================= */}
-          {/* 8. IDENTIFICADOR DO PEDIDO COM CLIENTE, ITENS E ENDEREÇO  */}
+          {/* 8. RECIBO / RESUMO DO PEDIDO (ABAIXO DO PIX NA MESMA TELA) */}
           {/* ========================================================= */}
-          <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-left text-xs space-y-2.5 shadow-2xs">
-            <div className="font-black text-gray-800 uppercase tracking-wider text-[11px] pb-1 border-b border-gray-100 flex items-center justify-between">
-              <span>Dados do Pedido</span>
-              <span className="text-gray-400 font-mono">#{activeOrder.orderId}</span>
+          <div className="bg-gradient-to-b from-gray-50 to-white border-2 border-gray-200 rounded-2xl p-4 text-left text-xs text-gray-800 space-y-3 shadow-xs">
+            {/* Topo do Recibo */}
+            <div className="flex items-center justify-between pb-2.5 border-b border-gray-200">
+              <div className="flex items-center gap-1.5">
+                <Receipt className="w-4 h-4 text-[#D32F2F]" />
+                <span className="font-black text-gray-900 uppercase tracking-tight text-xs">
+                  Recibo do Pedido
+                </span>
+                <span className="font-mono text-gray-500 font-bold">#{activeOrder.orderId}</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleCorrectData}
+                className="text-[#D32F2F] hover:underline font-bold text-xs flex items-center gap-1 cursor-pointer"
+                title="Editar endereço ou dados"
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>Corrigir meus dados</span>
+              </button>
             </div>
 
-            {/* Cliente */}
+            {/* Dados do Cliente */}
             {activeOrder.customer && (
-              <div className="flex items-start gap-2 text-gray-700">
-                <User className="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold text-gray-900">{activeOrder.customer.fullName}</span>
-                  {activeOrder.customer.phone && (
-                    <span className="text-gray-500 text-[11px] block">{activeOrder.customer.phone}</span>
-                  )}
+              <div className="space-y-1 pb-2 border-b border-gray-200">
+                <div className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-gray-400">
+                  <User className="w-3 h-3 text-gray-400" />
+                  <span>CLIENTE</span>
                 </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-gray-500">Nome:</span>
+                  <span className="font-bold text-gray-900">{activeOrder.customer.fullName}</span>
+                </div>
+                {activeOrder.customer.phone && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-500">Telefone:</span>
+                    <span className="font-bold text-gray-900">{activeOrder.customer.phone}</span>
+                  </div>
+                )}
+                {activeOrder.customer.cpf && (
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-500">CPF:</span>
+                    <span className="font-semibold text-gray-700">{activeOrder.customer.cpf}</span>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Endereço */}
+            {/* Endereço de Entrega */}
             {activeOrder.address && (
-              <div className="flex items-start gap-2 text-gray-700">
-                <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
-                <div className="text-[11px]">
-                  <span className="font-semibold text-gray-900">
+              <div className="space-y-1 pb-2 border-b border-gray-200">
+                <div className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-gray-400">
+                  <MapPin className="w-3 h-3 text-red-500" />
+                  <span>ENDEREÇO COMPLETO</span>
+                </div>
+                <div className="text-xs text-gray-800 space-y-0.5">
+                  <div className="font-semibold text-gray-900">
                     {activeOrder.address.street}, {activeOrder.address.number}
                     {activeOrder.address.complement ? ` (${activeOrder.address.complement})` : ''}
-                  </span>
-                  <span className="text-gray-500 block">
+                  </div>
+                  <div className="text-gray-600 text-[11px]">
                     {activeOrder.address.neighborhood} - {activeOrder.address.city}/{activeOrder.address.state}
-                  </span>
+                    {activeOrder.address.cep ? ` • CEP: ${activeOrder.address.cep}` : ''}
+                  </div>
                 </div>
               </div>
             )}
 
-            {/* Itens */}
+            {/* Itens do Pedido */}
             {Array.isArray(activeOrder.items) && activeOrder.items.length > 0 && (
-              <div className="pt-1.5 border-t border-gray-100 space-y-1">
-                <div className="text-[11px] font-bold text-gray-500 flex items-center gap-1">
-                  <ShoppingBag className="w-3 h-3" />
-                  <span>Itens solicitados:</span>
+              <div className="space-y-1.5 pb-2 border-b border-gray-200">
+                <div className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wider text-gray-400">
+                  <ShoppingBag className="w-3 h-3 text-gray-400" />
+                  <span>ITENS &amp; QUANTIDADES</span>
                 </div>
-                <div className="space-y-1">
+                <div className="divide-y divide-gray-100">
                   {activeOrder.items.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center text-xs text-gray-700">
-                      <span>
-                        <strong className="text-[#D32F2F] font-bold mr-1">{item.quantity}x</strong>
-                        {item.name}
-                      </span>
-                      <span className="font-semibold text-gray-900">
+                    <div key={idx} className="py-1.5 flex items-start justify-between gap-2 text-xs">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-gray-900">
+                          <span className="text-[#D32F2F] font-extrabold mr-1.5">{item.quantity}x</span>
+                          {item.name}
+                        </div>
+                        {item.description && (
+                          <div className="text-[11px] text-gray-500 mt-0.5 uppercase tracking-wide">
+                            {item.description}
+                          </div>
+                        )}
+                      </div>
+                      <div className="font-extrabold text-gray-900 shrink-0">
                         {formatCurrency(item.price * item.quantity)}
-                      </span>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
+
+            {/* Resumo Financeiro */}
+            <div className="space-y-1 pt-1 text-xs">
+              <div className="flex justify-between items-center text-gray-600">
+                <span>Subtotal:</span>
+                <span className="font-medium text-gray-800">{formatCurrency(activeOrder.total)}</span>
+              </div>
+              <div className="flex justify-between items-center text-gray-600">
+                <span>Taxa de Entrega:</span>
+                <span className="font-bold text-emerald-600 uppercase">Grátis</span>
+              </div>
+              <div className="flex justify-between items-center text-gray-600">
+                <span>Desconto:</span>
+                <span className="font-medium text-gray-400">R$ 0,00</span>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-gray-300 text-sm font-bold">
+                <span className="text-gray-900">Total a Pagar:</span>
+                <span className="text-base font-black text-[#D32F2F]">{formatCurrency(activeOrder.total)}</span>
+              </div>
+            </div>
+
+            {/* Previsão de Entrega */}
+            <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 flex items-center justify-between text-xs text-emerald-900 font-medium">
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Tempo estimado de entrega:</span>
+              </span>
+              <span className="font-extrabold text-emerald-900">35 a 50 minutos após confirmação</span>
+            </div>
           </div>
 
           {/* ========================================================= */}
-          {/* 9. TEMPO ESTIMADO DE ENTREGA                              */}
-          {/* ========================================================= */}
-          <div className="bg-gray-50 border border-gray-200/70 rounded-xl p-3 flex items-center justify-between text-xs text-gray-700">
-            <span className="flex items-center gap-1.5 font-medium">
-              <Clock className="w-3.5 h-3.5 text-gray-500" />
-              <span>Tempo estimado de entrega:</span>
-            </span>
-            <span className="font-extrabold text-gray-900">
-              35 a 50 minutos após confirmação
-            </span>
-          </div>
-
-          {/* ========================================================= */}
-          {/* 10. SUPORTE / DÚVIDAS & AÇÕES                             */}
+          {/* 9. INFORMAÇÕES DE SUPORTE & AÇÕES                         */}
           {/* ========================================================= */}
           <div className="space-y-2 pt-1">
             <button
@@ -368,7 +459,7 @@ export default function PixScreen() {
               <span>{isChecking ? 'Verificando pagamento no banco...' : 'Já realizei o pagamento (Verificar)'}</span>
             </button>
 
-            {/* Suporte WhatsApp: se configurado, exibe botão; se não, oculta de forma elegante */}
+            {/* Suporte WhatsApp */}
             {whatsappUrl && (
               <a
                 href={whatsappUrl}
