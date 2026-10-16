@@ -473,7 +473,7 @@ export default function PixScreen() {
             )}
 
             <p className="text-[11px] text-gray-400">
-              Atendimento todos os dias das 18h às 23h30
+              Atendimento e delivery 24 horas todos os dias
             </p>
 
             <button

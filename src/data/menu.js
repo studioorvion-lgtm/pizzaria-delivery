@@ -35,39 +35,29 @@ export const SUPER_COMBOS = [
     price: 64.90,
     image: '/images/pizzafoto.webp',
     category: 'super-combos',
+    badge: 'Mais Pedido',
+    serves: 'Serve 3 a 4 pessoas',
     priceGreen: true,
-    scarcity: {
-      units: '03 unidades',
-      percent: 55
-    }
   },
   {
     id: 'combo-2gig',
     name: '02 Pizzas Gigantes + 2 Refrigerantes 2 Litros',
     description: 'ESCOLHA OS SABORES',
     price: 73.80,
-    badge: 'Mais Pedida',
-    isPulse: true,
+    badge: 'Combo Família',
+    serves: 'Serve 4 a 6 pessoas',
     image: '/images/pizzafoto.webp',
     category: 'super-combos',
-    scarcity: {
-      units: '02 unidades',
-      percent: 38
-    }
   },
   {
     id: 'combo-3gig',
     name: '03 Pizzas Gigantes + 2 Refrigerantes 2 Litros',
     description: 'ESCOLHA OS SABORES',
     price: 99.80,
-    badge: 'Mais Pedida',
-    isPulse: true,
+    badge: 'Super Galera',
+    serves: 'Serve 6 a 8 pessoas',
     image: '/images/plano3.webp',
     category: 'super-combos',
-    scarcity: {
-      units: '01 unidades',
-      percent: 22
-    }
   }
 ];
 

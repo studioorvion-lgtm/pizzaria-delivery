@@ -92,11 +92,11 @@ async function runClarityTests() {
   assert.strictEqual(isValidCEP('1234'), false, 'CEP curto inválido');
   console.log('✓ Validação de CEP validada com sucesso.');
 
-  // Horário dinâmico
+  // Horário 24h
   const bh = getBusinessHoursStatus();
-  assert.ok(typeof bh.isOpen === 'boolean', 'isOpen deve ser booleano');
-  assert.ok(bh.badgeText.includes('ABERTO') || bh.badgeText.includes('FECHADO'), 'Texto do badge correto');
-  console.log(`✓ Horário dinâmico de funcionamento validado: status atual = ${bh.badgeText} (${bh.detailText})`);
+  assert.strictEqual(bh.isOpen, true, 'Loja deve estar sempre aberta 24h');
+  assert.ok(bh.badgeText.includes('ABERTO'), 'Texto do badge deve ser ABERTO');
+  console.log(`✓ Horário de funcionamento 24h validado: status atual = ${bh.badgeText} (${bh.detailText})`);
 
   console.log('\n=== TODOS OS TESTES DE CLAREZA E FLUXO PASSARAM COM SUCESSO! ===\n');
 }

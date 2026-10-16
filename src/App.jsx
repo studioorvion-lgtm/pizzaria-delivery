@@ -3,6 +3,8 @@ import { CartProvider } from './context/CartContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import TopBanner from './components/TopBanner';
 import Header from './components/Header';
+import HeroOffer from './components/HeroOffer';
+import CategoryNav from './components/CategoryNav';
 import SuperCombos from './components/SuperCombos';
 import CombosEspeciais from './components/CombosEspeciais';
 import BurgersSection from './components/BurgersSection';
@@ -74,38 +76,44 @@ export default function App() {
   return (
     <ErrorBoundary>
       <CartProvider>
-        <div className="min-h-screen bg-[#f4f4f5] text-gray-900 flex flex-col font-sans pb-16 md:pb-0">
+        <div className="min-h-screen bg-[#f4f4f5] text-gray-900 flex flex-col font-sans pb-24 md:pb-0">
           {/* 1. Faixa Superior Fina */}
           <TopBanner />
 
           {/* 2. Topo com Logo, Nome e Dados */}
           <Header onOpenOrders={() => setIsMyOrderOpen(true)} />
 
+          {/* 3. Oferta Principal em Destaque na Primeira Tela */}
+          <HeroOffer />
+
+          {/* 4. Navegação Rápida por Categorias */}
+          <CategoryNav />
+
           {/* Conteúdo Principal do Cardápio */}
           <main className="flex-1 w-full max-w-5xl mx-auto py-2">
-            {/* 3. Super Combos */}
+            {/* 5. Super Combos */}
             <SuperCombos />
 
-            {/* 4. Combos Especiais */}
+            {/* 6. Combos Especiais */}
             <CombosEspeciais />
 
-            {/* 5. Hambúrgueres / Acompanhamentos */}
+            {/* 7. Hambúrgueres / Acompanhamentos */}
             <BurgersSection />
 
-            {/* 6. Bebidas */}
+            {/* 8. Bebidas */}
             <DrinksSection />
 
-            {/* 7. Bloco de Prova / Destaque & Fotos do Ambiente */}
+            {/* 9. Bloco de Prova / Pilares de Qualidade & Fotos do Ambiente */}
             <TrustAndAmbience />
 
-            {/* 8. Cardápio Completo / O Que Dizem Nossos Clientes */}
+            {/* 10. Avaliações de Clientes Verificados */}
             <CustomerReviews />
 
-            {/* 9. CTA Final */}
+            {/* 11. CTA Final */}
             <FinalCTA />
           </main>
 
-          {/* 10. Rodapé com links funcionais */}
+          {/* 12. Rodapé com links funcionais */}
           <Footer
             onOpenPrivacy={() => setLegalModal('privacy')}
             onOpenTerms={() => setLegalModal('terms')}
