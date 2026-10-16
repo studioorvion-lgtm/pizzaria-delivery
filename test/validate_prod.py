@@ -51,8 +51,8 @@ def validate_production():
         print("[OK] Elementos artificiais verificados: nenhum timer regressivo fake ou barra de escassez na produção!")
 
         # 2. Adiciona combo ao carrinho
-        card = page.locator("#menu-pizzas .card-shadow").first
-        card.click()
+        add_btn = page.locator("button:has-text('Adicionar'), button:has-text('Pedir Este Combo')").first
+        add_btn.click()
         page.wait_for_timeout(400)
 
         # 3. Abre Carrinho
