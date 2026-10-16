@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { CartProvider } from './context/CartContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import TopBanner from './components/TopBanner';
 import Header from './components/Header';
-import HeroOffer from './components/HeroOffer';
-import CategoryNav from './components/CategoryNav';
-import SuperCombos from './components/SuperCombos';
-import CombosEspeciais from './components/CombosEspeciais';
-import BurgersSection from './components/BurgersSection';
-import DrinksSection from './components/DrinksSection';
-import TrustAndAmbience from './components/TrustAndAmbience';
-import CustomerReviews from './components/CustomerReviews';
-import FinalCTA from './components/FinalCTA';
+import HeroStoreCard from './components/HeroStoreCard';
+import PromoHighlights from './components/PromoHighlights';
+import CatalogSection from './components/CatalogSection';
+import DesktopSidebarCart from './components/DesktopSidebarCart';
 import Footer from './components/Footer';
 import MobileBottomBar from './components/MobileBottomBar';
 import CartDrawer from './components/CartDrawer';
@@ -76,51 +70,30 @@ export default function App() {
   return (
     <ErrorBoundary>
       <CartProvider>
-        <div className="min-h-screen bg-[#f4f4f5] text-gray-900 flex flex-col font-sans pb-24 md:pb-0">
-          {/* 1. Faixa Superior Fina */}
-          <TopBanner />
-
-          {/* 2. Topo com Logo, Nome e Dados */}
+        <div className="min-h-screen bg-[#f8f9fa] text-gray-900 flex flex-col font-sans pb-24 lg:pb-0">
+          {/* 1. Topo Estilo YOR */}
           <Header onOpenOrders={() => setIsMyOrderOpen(true)} />
 
-          {/* 3. Oferta Principal em Destaque na Primeira Tela */}
-          <HeroOffer />
+          {/* 2. Hero Amplo & 3. Card da Loja Sobreposto */}
+          <HeroStoreCard />
 
-          {/* 4. Navegação Rápida por Categorias */}
-          <CategoryNav />
+          {/* 4. Promoções em Destaque (2 Cards Lado a Lado) */}
+          <PromoHighlights />
 
-          {/* Conteúdo Principal do Cardápio */}
-          <main className="flex-1 w-full max-w-5xl mx-auto py-2">
-            {/* 5. Super Combos */}
-            <SuperCombos />
-
-            {/* 6. Combos Especiais */}
-            <CombosEspeciais />
-
-            {/* 7. Hambúrgueres / Acompanhamentos */}
-            <BurgersSection />
-
-            {/* 8. Bebidas */}
-            <DrinksSection />
-
-            {/* 9. Bloco de Prova / Pilares de Qualidade & Fotos do Ambiente */}
-            <TrustAndAmbience />
-
-            {/* 10. Avaliações de Clientes Verificados */}
-            <CustomerReviews />
-
-            {/* 11. CTA Final */}
-            <FinalCTA />
+          {/* 5. Conteúdo Principal: Catálogo (Esquerda) + Sacola Fixa (Direita no Desktop) */}
+          <main className="max-w-6xl w-full mx-auto px-4 py-4 flex flex-col lg:flex-row gap-6 lg:gap-8 items-start flex-1">
+            <CatalogSection />
+            <DesktopSidebarCart />
           </main>
 
-          {/* 12. Rodapé com links funcionais */}
+          {/* Rodapé Limpo Estilo YOR */}
           <Footer
             onOpenPrivacy={() => setLegalModal('privacy')}
             onOpenTerms={() => setLegalModal('terms')}
             onOpenAdmin={navigateToAdmin}
           />
 
-          {/* Componentes Interativos e Checkout Pix */}
+          {/* Carrinho Mobile Flutuante e Modais */}
           <MobileBottomBar />
           <CartDrawer />
           <CheckoutModal />

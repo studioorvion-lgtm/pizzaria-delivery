@@ -51,14 +51,14 @@ def validate_production():
         print("[OK] Elementos artificiais verificados: nenhum timer regressivo fake ou barra de escassez na produção!")
 
         # 2. Adiciona combo ao carrinho
-        add_btn = page.locator("button:has-text('Adicionar'), button:has-text('Pedir Este Combo')").first
+        add_btn = page.locator("button:has-text('Montar meu combo'), button:has-text('Adicionar'), button:has-text('Pedir Este Combo')").first
         add_btn.click()
         page.wait_for_timeout(400)
 
-        # 3. Abre Carrinho
-        page.locator("button", has_text="Carrinho").first.click()
+        # 3. Abre Carrinho / Sacola
+        page.locator("button:has-text('Ver Carrinho'), header button:has-text('Sacola')").first.click()
         page.wait_for_timeout(400)
-        page.locator("button", has_text="Continuar para Entrega").first.click()
+        page.locator("button:has-text('Continuar para Entrega')").first.click()
         page.wait_for_timeout(400)
 
         # 4. ETAPA 1 — Endereço

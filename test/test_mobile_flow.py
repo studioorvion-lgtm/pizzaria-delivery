@@ -93,21 +93,16 @@ def run_e2e():
                 print(f"[OK] Sem overflow horizontal na página inicial ({vp['width']}px).")
 
                 # 2. Adiciona item ao carrinho
-                add_btn = page.locator("button:has-text('Adicionar'), button:has-text('ADICIONAR')").first
-                if not add_btn.is_visible():
-                    # Clica no card do combo
-                    card = page.locator("#menu-pizzas .card-shadow").first
-                    card.click()
-                else:
-                    add_btn.click()
+                add_btn = page.locator("button:has-text('Montar meu combo'), button:has-text('Adicionar'), button:has-text('ADICIONAR')").first
+                add_btn.click()
                 page.wait_for_timeout(300)
 
-                # 3. Abre Carrinho
-                page.locator("button:has-text('Carrinho')").first.click()
+                # 3. Abre Carrinho / Sacola
+                page.locator("button:has-text('Ver Carrinho'), header button:has-text('Sacola')").first.click()
                 page.wait_for_timeout(300)
 
-                # 4. Clica em Continuar para Entrega
-                page.locator("button:has-text('Continuar para Entrega')").first.click()
+                # 4. Clica em Continuar para Entrega no drawer visível
+                page.locator("button:has-text('Continuar para Entrega')").click()
                 page.wait_for_timeout(300)
 
                 # 5. ETAPA 1 — ENDEREÇO

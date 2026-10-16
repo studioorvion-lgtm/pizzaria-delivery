@@ -3,46 +3,63 @@ import { siteConfig } from '../config/site';
 
 export default function Footer({ onOpenPrivacy, onOpenTerms, onOpenAdmin }) {
   return (
-    <footer className="bg-white border-t border-gray-200 py-10 px-4 text-center">
-      <div className="max-w-4xl mx-auto">
-        <h3 className="font-black text-xl text-[#006437] mb-2 uppercase italic tracking-tight">
-          {siteConfig.name}
-        </h3>
-        <p className="text-gray-500 text-sm mb-6">
-          {siteConfig.tagline}
-        </p>
+    <footer className="bg-white border-t border-gray-200/80 py-8 px-4 text-xs text-gray-500">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Esquerda: Logo e Slogan no Estilo YOR */}
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-neutral-900 border border-gray-100 overflow-hidden flex items-center justify-center shrink-0">
+            <img
+              src="/images/pizzaria.webp"
+              alt={siteConfig.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div>
+            <span className="font-black text-gray-900 text-sm tracking-tight block uppercase">
+              DONATELLO PIZZARIA.
+            </span>
+            <span className="text-[11px] text-gray-400">
+              Sabor artesanal onde você estiver.
+            </span>
+          </div>
+        </div>
 
-        <div className="flex flex-wrap justify-center gap-4 mb-8 text-xs font-bold text-gray-500 uppercase tracking-widest">
+        {/* Centro: Links Institucionais */}
+        <div className="flex items-center gap-3 text-xs font-semibold">
           <button
             type="button"
             onClick={onOpenPrivacy}
-            className="hover:text-red-600 cursor-pointer transition"
+            className="hover:text-red-600 transition cursor-pointer"
           >
             Políticas de Privacidade
           </button>
-          <span>|</span>
+          <span>•</span>
           <button
             type="button"
             onClick={onOpenTerms}
-            className="hover:text-red-600 cursor-pointer transition"
+            className="hover:text-red-600 transition cursor-pointer"
           >
             Termos de Uso
           </button>
+          {onOpenAdmin && (
+            <>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={onOpenAdmin}
+                className="text-gray-400 hover:text-emerald-700 transition cursor-pointer underline"
+              >
+                Acesso Lojista
+              </button>
+            </>
+          )}
         </div>
 
-        <p className="text-[10px] text-gray-400 uppercase tracking-tighter">
-          © 2026 {siteConfig.name} | Todos os direitos reservados
-        </p>
-
-        {onOpenAdmin && (
-          <button
-            type="button"
-            onClick={onOpenAdmin}
-            className="mt-3 text-[11px] text-gray-400 hover:text-emerald-700 font-semibold cursor-pointer transition underline inline-block"
-          >
-            Acesso Lojista (Painel)
-          </button>
-        )}
+        {/* Direita: Status Aberto Agora */}
+        <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+          <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+          <span>Aberto agora</span>
+        </div>
       </div>
     </footer>
   );
