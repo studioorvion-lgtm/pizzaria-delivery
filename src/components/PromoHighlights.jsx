@@ -14,7 +14,7 @@ export default function PromoHighlights() {
     description: '2 Pizzas Grandes (8 fatias cada) + Refri 2L • Escolha os sabores',
     price: 64.90,
     originalPrice: 89.90,
-    image: '/images/pizzafoto.webp',
+    image: '/images/combo-2pizzas-refri2l.webp',
     category: 'super-combos',
     badge: 'MAIS PEDIDO',
   };

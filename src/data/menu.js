@@ -25,7 +25,7 @@ export const SUPER_COMBOS = [
     name: '02 Pizzas M + 1 Refrigerante 2 Litros',
     description: 'ESCOLHA OS SABORES',
     price: 55.90,
-    image: '/images/pizzafoto.webp',
+    image: '/images/combo-2pizzas-refri2l.webp',
     category: 'super-combos'
   },
   {
@@ -33,7 +33,7 @@ export const SUPER_COMBOS = [
     name: '02 Pizzas G + 1 Refrigerante 2 Litros',
     description: 'ESCOLHA OS SABORES',
     price: 64.90,
-    image: '/images/pizzafoto.webp',
+    image: '/images/combo-2pizzas-refri2l.webp',
     category: 'super-combos',
     badge: 'Mais Pedido',
     serves: 'Serve 3 a 4 pessoas',
@@ -46,7 +46,7 @@ export const SUPER_COMBOS = [
     price: 73.80,
     badge: 'Combo Família',
     serves: 'Serve 4 a 6 pessoas',
-    image: '/images/pizzafoto.webp',
+    image: '/images/combo-2pizzas-2refris.webp',
     category: 'super-combos',
   },
   {
@@ -56,7 +56,7 @@ export const SUPER_COMBOS = [
     price: 99.80,
     badge: 'Super Galera',
     serves: 'Serve 6 a 8 pessoas',
-    image: '/images/plano3.webp',
+    image: '/images/combo-3pizzas-2refris.webp',
     category: 'super-combos',
   }
 ];
@@ -83,7 +83,7 @@ export const COMBOS_ESPECIAIS = [
     name: '01 Pizza Média Marguerita + 01 Refri 1L',
     description: 'Escolha o refrigerante de 1 litro ao abrir',
     price: 49.90,
-    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=300&q=80',
+    image: '/images/combo-marguerita.webp',
     category: 'combos-especiais'
   },
   {

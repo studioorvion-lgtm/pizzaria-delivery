@@ -36,14 +36,14 @@ export default function HeroStoreCard() {
     <section className="w-full pt-3 pb-2">
       <div className="max-w-6xl mx-auto px-4">
         {/* Banner Fotográfico Amplo Estilo YOR */}
-        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden h-44 sm:h-64 md:h-72 shadow-sm bg-neutral-900">
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden h-60 sm:h-72 md:h-84 lg:h-[400px] shadow-sm bg-neutral-900">
           <img
             src="/images/pizzafoto.webp"
             alt="Pizza Artesanal Donatello saindo do forno"
-            className="w-full h-full object-cover object-center brightness-90 contrast-105"
+            className="w-full h-full object-cover object-[center_20%] sm:object-[center_22%] md:object-[center_25%] brightness-95 contrast-105"
             loading="eager"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/15 pointer-events-none" />
         </div>
 
         {/* Card Branco Sobreposto ao Hero (Igual à YOR) */}

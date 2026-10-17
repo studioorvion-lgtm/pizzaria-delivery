@@ -70,7 +70,9 @@ export default function CartDrawer() {
                   <img
                     src={item.image}
                     alt={item.name}
-                    className="w-16 h-16 rounded-lg object-cover bg-gray-50 shrink-0"
+                    className={`w-16 h-16 rounded-lg bg-white border border-gray-100 shrink-0 ${
+                      item.category === 'bebidas' ? 'object-contain p-1' : 'object-cover'
+                    }`}
                   />
                 )}
 

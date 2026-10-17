@@ -273,11 +273,13 @@ function ProductCard({ item, onAdd, isAdded }) {
       </div>
 
       {/* Lado Direito: Imagem com Botão Vermelho Redondo '+' no Canto */}
-      <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-stone-50 shrink-0 border border-gray-100">
+      <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-white shrink-0 border border-gray-100 flex items-center justify-center">
         <img
           src={item.image}
           alt={item.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+          className={`w-full h-full group-hover:scale-105 transition duration-300 ${
+            item.category === 'bebidas' ? 'object-contain p-1.5' : 'object-cover'
+          }`}
           loading="lazy"
           decoding="async"
         />

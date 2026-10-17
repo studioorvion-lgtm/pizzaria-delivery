@@ -442,7 +442,7 @@ export default function PixScreen() {
                 <Clock className="w-3.5 h-3.5 text-emerald-600" />
                 <span>Tempo estimado de entrega:</span>
               </span>
-              <span className="font-extrabold text-emerald-900">35 a 50 minutos após confirmação</span>
+              <span className="font-extrabold text-emerald-900">20 a 45 min após confirmação</span>
             </div>
           </div>
 

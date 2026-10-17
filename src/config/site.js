@@ -6,7 +6,7 @@
 export const siteConfig = {
   name: 'Donatello Pizzaria Artesanal',
   tagline: 'A verdadeira pizza na sua casa.',
-  deliveryTime: 'até 30 min',
+  deliveryTime: '20 a 45 min',
   
   // Telefone centralizado configurável por variável de ambiente (sem fake hardcoded)
   phone: (typeof import.meta !== 'undefined' && import.meta.env?.VITE_CONTACT_PHONE) || '',
